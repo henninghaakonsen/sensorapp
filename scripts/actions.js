@@ -17,4 +17,5 @@ export type Action =
     | { type: 'NODE_FETCH_SUCCEEDED', nodeInformation: NodeInformation[] }
     | { type: 'NODE_FETCH_FAILED', message: string}
     | { type: 'NODE_QUERY_CLICKED', node: Node}
-    | { type: 'NODE_SELECTED', node: Node};
+    | { type: 'NODE_SELECTED', node: Node}
+    | { type: 'SELECT_HOME' };

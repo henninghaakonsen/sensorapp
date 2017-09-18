@@ -31,15 +31,21 @@ function rejectFetchFailures(response) {
 
 export function fetchNodeList(): Promise<Node[]> {
   return fetch(`${apiServer}/nodes`, fetchNodesOptions)
-    .then(rejectFetchFailures)
-    .then(response => response.json())
-    .then(({ nodes }) => nodes.map(node => ({
-      id: node.id,
-      displayName: node.displayName,
-    })));
+      .then(rejectFetchFailures)
+      .then(response => response.json())
+      .then(({ nodes }) =>
+        Promise.all(nodes.map(node => {
+          return fetchOneNode(node)
+            .then(nodeInfo => ({
+                id: node.id,
+                displayName: node.displayName,
+                nodeInfo: nodeInfo,
+            }))
+          })))
+      .then(nodes => nodes);
 }
 
-export function fetchOneNode( node: Node ): Promise<NodeInformation[]> {
+export function fetchOneNode( node: Node ): NodeInformation[] {
   return fetch(`${apiServer}/nodes/${node.id}`, fetchNodeInformationOptions)
     .then(rejectFetchFailures)
     .then(response => response.json())

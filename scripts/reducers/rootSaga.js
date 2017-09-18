@@ -22,6 +22,15 @@ function* fetchNodes() {
   }
 }
 
+function fetchNodeWithId(id: String): NodeInformation[] {
+  try {
+    const nodeInformation = fetchOneNode(id)
+    console.log(nodeInformation)
+    return nodeInformation
+  } catch (e) {
+  }
+}
+
 function* fetchNode(node: Node) {
   try {
     const nodeInformation = yield call(fetchOneNode, node)

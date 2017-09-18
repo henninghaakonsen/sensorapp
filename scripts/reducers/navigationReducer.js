@@ -47,6 +47,13 @@ export default function navigationReducer(state: Navigation = initialState, acti
         selectedNodeInformation: action.nodeInformation,
       }
 
+    case 'SELECT_HOME':
+      return {
+        ...state,
+        selectedNode: null,
+        selectedNodeInformation: []
+      }
+
     default:
       return state
   }

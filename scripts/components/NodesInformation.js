@@ -17,11 +17,9 @@ import {
 
 import {Line} from 'react-chartjs-2';
 
-class NodeInfoComponent extends React.Component {
+class NodesInformation extends React.Component {
   props: {
     nodes: Node[],
-    selectedNode: Node,
-    selectedNodeInformation: NodeInformation[],
   };
 
   state: {
@@ -33,14 +31,45 @@ class NodeInfoComponent extends React.Component {
     }
   }
 
+  calculateAverage(): [] {
+    let newDict = []
+    this.props.nodes.map(node => {
+      node.nodeInfo.map(nodeInfo => {
+        let elem = newDict[nodeInfo.timestamp]
+        if(elem == null) {
+          elem = [nodeInfo.timestamp, nodeInfo.latency, nodeInfo.coverage]
+        } else {
+          elem[1] = (elem[1] + nodeInfo.latency) / 2
+          if(nodeInfo.type == "coverage") {
+            if(elem[2] == 0) elem[2] = nodeInfo.coverage
+            else elem[2] = (elem[2] + nodeInfo.coverage) / 2
+          }
+        }
+        newDict[nodeInfo.timestamp] = elem
+      })
+    })
+    return newDict
+  }
+
   render() {
     let latencyPoints = []
     let latencyLabels = []
-    this.props.selectedNodeInformation.map((nodeInformation, i) => {
-      latencyLabels[i] = nodeInformation.timestamp
-      latencyPoints[i] = nodeInformation.latency
-    })
 
+    let coveragePoints = []
+    let coverageLabels = []
+    let dict = this.calculateAverage()
+
+    let latencyIndex = 0
+    let coverageIndex = 0
+    for (var key in dict) {
+      latencyLabels[latencyIndex] = dict[key][0]
+      latencyPoints[latencyIndex++] = dict[key][1]
+
+      if(dict[key][2] != 0) {
+        coverageLabels[coverageIndex] = dict[key][0]
+        coveragePoints[coverageIndex++] = dict[key][2]
+      }
+    }
     const latencyData = {
       labels: latencyLabels,
       datasets: [
@@ -68,16 +97,6 @@ class NodeInfoComponent extends React.Component {
         },
       ],
     };
-
-    let coveragePoints = []
-    let coverageLabels = []
-    let index = 0
-    this.props.selectedNodeInformation.map(nodeInformation => {
-      if(nodeInformation.type == 'coverage') {
-        coverageLabels[index] = index
-        coveragePoints[index++] = nodeInformation.coverage
-      }
-    })
 
     const coverageData = {
       labels: coverageLabels,
@@ -108,37 +127,13 @@ class NodeInfoComponent extends React.Component {
     };
 
     return (
-      this.props.selectedNode &&
+      !this.props.selectedNode &&
       <Tabs style={{height: '100vh', width: '80vw', overflowY: 'scroll'}}>
         <Tab label="GRAPH OVERVIEW" style={{height: 50, backgroundColor: colors.accentLight}}>
           <Line data={latencyData} width={40} height={10}
-                options={{maintainAspectRatio: true}}/>
+              options={{maintainAspectRatio: true}}/>
           <Line data={coverageData} width={40} height={10}
-                options={{maintainAspectRatio: true}}/>
-        </Tab>
-        <Tab label="RAW DATA" style={{height: 50, backgroundColor: colors.accentLight}}>
-          <Table
-            multiSelectable={true}
-            >
-            <TableHeader adjustForCheckbox={true}>
-              <TableRow>
-                <TableHeaderColumn>TIMESTAMP</TableHeaderColumn>
-                <TableHeaderColumn>TYPE</TableHeaderColumn>
-                <TableHeaderColumn>LATENCY</TableHeaderColumn>
-                <TableHeaderColumn>COVERAGE</TableHeaderColumn>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              { this.props.selectedNodeInformation.map((nodeInformation, i) =>
-                <TableRow key={i} value={nodeInformation}>
-                  <TableRowColumn> {nodeInformation.timestamp} </TableRowColumn>
-                  <TableRowColumn> {nodeInformation.type} </TableRowColumn>
-                  <TableRowColumn> {nodeInformation.latency} </TableRowColumn>
-                  <TableRowColumn> {nodeInformation.coverage} </TableRowColumn>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              options={{maintainAspectRatio: true}}/>
         </Tab>
       </Tabs>
     )
@@ -151,7 +146,7 @@ const Connected = connectClass(
     selectedNode: state.navigation.selectedNode,
     selectedNodeInformation: state.navigation.selectedNodeInformation,
   }), (dispatch: (action: Action) => void) => ({
-  }), NodeInfoComponent
+  }), NodesInformation
 )
 
 export default Connected

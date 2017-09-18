@@ -13,11 +13,12 @@ export type AppState = {
 export type Node = {
   id: string,
   displayName: string,
+  nodeInfo: NodeInformation[],
 }
 
 export type NodeInformation = {
   type: string,
   timestamp: string,
   latency: number,
-  coverage: string,
+  coverage: number,
 }

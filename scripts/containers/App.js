@@ -6,6 +6,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Header from '../components/Header'
 import Navigation from '../components/Navigation'
 import NodeInfoComponent from '../components/NodeInformation'
+import NodesInfoComponent from '../components/NodesInformation'
 import Search from '../components/Search'
 import theme from '../styles'
 
@@ -20,6 +21,7 @@ const App = () => {
             <Navigation />
           </SideBar>
           <Main>
+            <NodesInfoComponent/>
             <NodeInfoComponent/>
           </Main>
         </Vertical>
@@ -54,12 +56,12 @@ const SideBar = ({children}) => {
   return (
     <div style={{
       backgroundColor: '#f4f4f4',
-      boxShadow: '0px 4px 8px #444444',
+      //boxShadow: '0px 4px 8px #444444',
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
       width: '20%',
-      zIndex: 1,
+      zIndex: 0,
     }}>
       { children }
     </div>

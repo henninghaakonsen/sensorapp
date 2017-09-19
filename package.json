@@ -12,12 +12,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/henninghaakonsen/sensorapp"
+    "url": "https://github.com/kjesvale/kjh.git"
   },
   "engines": {
     "npm": "5.4.1"
   },
-  "author": "KJH",
+  "author": "Henning Håkonsen",
   "license": "ISC",
   "devDependencies": {
     "babel-core": "^6.26.0",
@@ -70,6 +70,8 @@
     "redux": "^3.7.2",
     "redux-logger": "^2.10.2",
     "redux-saga": "^0.12.1",
-    "sass": "^1.0.0-beta.2"
+    "sass": "^1.0.0-beta.2",
+    "webpack": "^1.15.0",
+    "webpack-dev-server": "^1.16.5"
   }
 }

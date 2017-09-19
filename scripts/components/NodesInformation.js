@@ -62,11 +62,11 @@ class NodesInformation extends React.Component {
     let latencyIndex = 0
     let coverageIndex = 0
     for (var key in dict) {
-      latencyLabels[latencyIndex] = dict[key][0]
+      latencyLabels[latencyIndex] = latencyIndex
       latencyPoints[latencyIndex++] = dict[key][1]
 
       if(dict[key][2] != 0) {
-        coverageLabels[coverageIndex] = dict[key][0]
+        coverageLabels[coverageIndex] = coverageIndex
         coveragePoints[coverageIndex++] = dict[key][2]
       }
     }

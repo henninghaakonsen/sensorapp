@@ -37,7 +37,7 @@ class NodeInfoComponent extends React.Component {
     let latencyPoints = []
     let latencyLabels = []
     this.props.selectedNodeInformation.map((nodeInformation, i) => {
-      latencyLabels[i] = nodeInformation.timestamp
+      latencyLabels[i] = i
       latencyPoints[i] = nodeInformation.latency
     })
 

@@ -13,7 +13,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kjesvale/kjh.git"
+    "url": "https://github.com/henninghaakonsen/sensorapp"
+  },
+  "engines": {
+    "node": "6.11.1"
   },
   "author": "KJH",
   "license": "ISC",

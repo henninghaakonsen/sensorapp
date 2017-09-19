@@ -5,7 +5,7 @@
  * @flow
  */
 
-import type { Node } from './types'
+import type { Node, NodeInformation } from './types'
 
 //const apiServer = 'http://localhost:8020/api'
 const apiServer = 'https://nb-iot-sensorserver.herokuapp.com/api'
@@ -46,7 +46,7 @@ export function fetchNodeList(): Promise<Node[]> {
       .then(nodes => nodes);
 }
 
-export function fetchOneNode( node: Node ): NodeInformation[] {
+export function fetchOneNode( node: Node ): Promise< NodeInformation[]> {
   return fetch(`${apiServer}/nodes/${node.id}`, fetchNodeInformationOptions)
     .then(rejectFetchFailures)
     .then(response => response.json())

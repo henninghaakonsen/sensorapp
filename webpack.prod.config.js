@@ -4,6 +4,9 @@ var ignore = new webpack.IgnorePlugin(/\.svg$/);
 var nodeModulesDir = path.resolve(__dirname, 'node_modules');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const port = process.env.PORT || 8080;
+
+
 module.exports = {
   entry: {
     main: './scripts/main.js',
@@ -16,7 +19,7 @@ module.exports = {
     ],
   },
   output: {
-    publicPath: 'http://localhost:8080/',
+    publicPath: 'http://localhost:' + port + '/',
     filename: './server/public/js/[name].js',
   },
   module: {

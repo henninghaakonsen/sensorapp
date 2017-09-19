@@ -22,13 +22,5 @@ module.exports = {
       { test: /\.scss$/, loaders: ['style', 'css', 'postcss'] },
     ],
   },
-  plugins: [ignore],
-  devServer: {
-    proxy: {
-        '/api/*': {
-          target: 'http://localhost:8020/',
-          secure: false,
-        },
-    },
-  },
+  plugins: [ignore]
 };

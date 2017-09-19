@@ -13,6 +13,7 @@
     "url": "https://github.com/kjesvale/kjh.git"
   },
   "engines": {
+    "node": "8.5.0",
     "npm": "5.4.1"
   },
   "author": "Henning Håkonsen",

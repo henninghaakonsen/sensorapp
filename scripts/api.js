@@ -7,8 +7,8 @@
 
 import type { Node, NodeInformation } from './types'
 
-//const apiServer = 'http://localhost:8020/api'
-const apiServer = 'https://nb-iot-sensorserver.herokuapp.com/api'
+const apiServer = 'http://localhost:8020/api'
+//const apiServer = 'https://nb-iot-sensorserver.herokuapp.com/api'
 
 const fetchNodesOptions = {
     method: 'GET',

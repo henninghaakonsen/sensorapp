@@ -3,8 +3,6 @@
  * wrapper around our App component, providing the goods of Redux.
  */
 
-import 'babel-polyfill'
-import 'isomorphic-fetch'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'

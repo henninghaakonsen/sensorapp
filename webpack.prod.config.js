@@ -7,12 +7,13 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 const port = process.env.PORT || 8080;
 
 module.exports = {
-  entry: {
-    main: './scripts/main.js'
-  },
+  entry: [
+    "babel-polyfill",
+    './scripts/main.js'
+  ],
   output: {
     publicPath: 'http://localhost:' + port + '/',
-    filename: './server/public/js/[name].js',
+    filename: '../sensorserver/src/app/public/[name].js',
   },
   module: {
     loaders: [

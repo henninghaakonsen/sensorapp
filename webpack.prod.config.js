@@ -6,17 +6,9 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const port = process.env.PORT || 8080;
 
-
 module.exports = {
   entry: {
-    main: './scripts/main.js',
-    vendor: [
-      'lodash',
-      'moment',
-      'normalizr',
-      'react',
-      'redux',
-    ],
+    main: './scripts/main.js'
   },
   output: {
     publicPath: 'http://localhost:' + port + '/',
@@ -30,7 +22,6 @@ module.exports = {
   },
   plugins: [
     ignore,
-    new ExtractTextPlugin('./server/public/css/main.css'),
-    new webpack.optimize.CommonsChunkPlugin('vendor', './server/public/js/vendor.js'),
+    new ExtractTextPlugin('./server/public/css/main.css')
   ],
 };

@@ -7,6 +7,7 @@ module.exports = {
   devtool: 'source-map',
   entry: {
     main: [
+      "babel-polyfill",
       './scripts/main.js',
       'webpack-dev-server/client?http://localhost:' + port,
       'webpack/hot/only-dev-server',

@@ -28,10 +28,67 @@ class NodeInfoComponent extends React.Component {
     super(props)
   }
 
+  makeDict(node: Node): [] {
+    let newDict = []
+    
+    let latencyIndex = 0
+    let coverageIndex = 0
+    let dateIndex = new Date()
+    var coeff = 1000 * 60 * 10
+      
+    let latencyAvg = 0
+    let latencyAvgCount = 0
+  
+    let coverageAvg = 0
+    let coverageAvgCount = 0
+    node.nodeInfo.map(nodeInformation => {
+      if(latencyIndex == 0) {
+        dateIndex = new Date((Math.round(new Date(nodeInformation.timestamp).getTime() / coeff) * coeff) - coeff)
+      }
+      let currentDate = new Date(nodeInformation.timestamp)
+      
+      if (Math.round(currentDate) - Math.round(dateIndex) > coeff) {
+        let latency = latencyAvg / latencyAvgCount
+        let coverage = coverageAvg / coverageAvgCount
+        if(coverageAvg == 0) coverage = 0
+        newDict[dateIndex] = [dateIndex, latency, coverage]
+      }
+
+      latencyAvg += nodeInformation.latency
+      latencyAvgCount++
+
+      if(nodeInformation.type == 'coverage') {
+        coverageAvg += nodeInformation.coverage
+        coverageAvgCount++
+      }
+    })
+
+    return newDict
+  }
+
   render() {
     let latencyPoints = []
     let latencyLabels = []
 
+    let coveragePoints = []
+    let coverageLabels = []
+
+    if( this.props.selectedNode != null ) {
+      let dict = this.makeDict(this.props.selectedNode)
+      
+      let latencyIndex = 0
+      let coverageIndex = 0
+      for (var key in dict) {
+        latencyLabels[latencyIndex] = latencyIndex
+        latencyPoints[latencyIndex++] = dict[key][1]
+  
+        if(dict[key][2] != 0) {
+          coverageLabels[coverageIndex] = coverageIndex
+          coveragePoints[coverageIndex++] = dict[key][2]
+        }
+      }
+    }
+    
     const latencyData = {
       labels: latencyLabels,
       datasets: [
@@ -60,9 +117,6 @@ class NodeInfoComponent extends React.Component {
       ],
     };
 
-    let coveragePoints = []
-    let coverageLabels = []
-
     const coverageData = {
       labels: coverageLabels,
       datasets: [
@@ -90,17 +144,6 @@ class NodeInfoComponent extends React.Component {
         },
       ],
     };
-
-    let index = 0
-    this.props.selectedNodeInformation.map((nodeInformation, i) => {
-      latencyLabels[i] = i
-      latencyPoints[i] = nodeInformation.latency
-
-      if(nodeInformation.type == 'coverage') {
-        coverageLabels[index] = index
-        coveragePoints[index++] = nodeInformation.coverage
-      }
-    })
 
     return (
       this.props.selectedNode &&

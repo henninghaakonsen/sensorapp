@@ -17,7 +17,7 @@ class Navigation extends Component {
     selectedNodeInformation: NodeInformation[],
     fetchingNodes: boolean,
     fetchNodes: () => void,
-    fetchNode: (node: Node) => void,
+    selectNode: (node: Node) => void,
     selectHome: () => void,
   }
 
@@ -32,7 +32,7 @@ class Navigation extends Component {
   onClick(node: Node) {
     if(node == null) {
       this.props.selectHome()
-    } else this.props.fetchNode(node)
+    } else this.props.selectNode(node)
   }
 
   render() {
@@ -74,7 +74,7 @@ const NodeList = ({busy, selectedId, onClick, nodes}: {
           <Button color="#841584"
                 onClick= {() => onClick(null)}
                 text={ 'HOME' }
-                selected={ null }/>
+                selected={ selectedId == null }/>
         </div>
         { nodes.map(node =>
           <NodeUnit
@@ -115,7 +115,7 @@ const Connected = connectClass(
   }),
   (dispatch: (action: Action) => void) => ({
       fetchNodes: ( ) => dispatch({ type: 'NODES_FETCH_REQUESTED' }),
-      fetchNode: (node: Node) => dispatch({ type: 'NODE_FETCH_REQUESTED', node }),
+      selectNode: (node: Node) => dispatch({ type: 'NODE_SELECTED', node }),
       selectHome: ( ) => dispatch({ type: 'SELECT_HOME'}),
   }), Navigation
 )

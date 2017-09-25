@@ -33,21 +33,52 @@ class NodesInformation extends React.Component {
 
   calculateAverage(): [] {
     let newDict = []
+    
     this.props.nodes.map(node => {
-      node.nodeInfo.map(nodeInfo => {
-        let elem = newDict[nodeInfo.timestamp]
-        if(elem == null) {
-          elem = [nodeInfo.timestamp, nodeInfo.latency, nodeInfo.coverage]
-        } else {
-          elem[1] = (elem[1] + nodeInfo.latency) / 2
-          if(nodeInfo.type == "coverage") {
-            if(elem[2] == 0) elem[2] = nodeInfo.coverage
-            else elem[2] = (elem[2] + nodeInfo.coverage) / 2
-          }
+      let latencyIndex = 0
+      let coverageIndex = 0
+      let dateIndex = new Date()
+      var coeff = 1000 * 60 * 10
+      
+      let latencyAvg = 0
+      let latencyAvgCount = 0
+  
+      let coverageAvg = 0
+      let coverageAvgCount = 0
+      node.nodeInfo.map(nodeInformation => {
+        if(latencyIndex == 0) {
+          dateIndex = new Date((Math.round(new Date(nodeInformation.timestamp).getTime() / coeff) * coeff) - coeff)
         }
-        newDict[nodeInfo.timestamp] = elem
+        let currentDate = new Date(nodeInformation.timestamp)
+        
+        if (Math.round(currentDate) - Math.round(dateIndex) > coeff) {
+          let elem = newDict[dateIndex]
+
+          let latency = 0
+          let coverage = 0
+          if(elem == null) {
+            latency = latencyAvg / latencyAvgCount
+            coverage = coverageAvg / coverageAvgCount
+          } else {
+            latency = (elem[1] + (latencyAvg / latencyAvgCount)) / 2
+            coverage = (elem[2] + (coverageAvg / coverageAvgCount)) / 2
+          }
+          if(coverageAvg == 0) coverage = 0
+          elem = [dateIndex, latency, coverage]
+
+          newDict[dateIndex] = elem
+        }
+  
+        latencyAvg += nodeInformation.latency
+        latencyAvgCount++
+  
+        if(nodeInformation.type == 'coverage') {
+          coverageAvg += nodeInformation.coverage
+          coverageAvgCount++
+        }
       })
     })
+
     return newDict
   }
 

@@ -21,9 +21,6 @@ class Navigation extends Component {
     selectHome: () => void,
   }
 
-  state: {
-  }
-
   constructor(props) {
     super(props)
   }
@@ -103,6 +100,7 @@ const NodeUnit = ({node, onClick, selected}: {
               onClick={ selected ? doNothing : () => onClick()}
               text={ node.displayName }
               selected={ selected }/>
+          
     </div>
   )
 }

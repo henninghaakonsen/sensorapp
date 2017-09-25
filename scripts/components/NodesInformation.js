@@ -130,9 +130,9 @@ class NodesInformation extends React.Component {
       !this.props.selectedNode &&
       <Tabs style={{height: '100vh', width: '80vw', overflowY: 'scroll'}}>
         <Tab label="GRAPH OVERVIEW" style={{height: 50, backgroundColor: colors.accentLight}}>
-          <Line data={latencyData} width={40} height={10}
+          <Line data={latencyData} width={35} height={10}
               options={{maintainAspectRatio: true}}/>
-          <Line data={coverageData} width={40} height={10}
+          <Line data={coverageData} width={35} height={10}
               options={{maintainAspectRatio: true}}/>
         </Tab>
       </Tabs>
@@ -144,7 +144,6 @@ const Connected = connectClass(
   (state: AppState) => ({
     nodes: state.navigation.nodes,
     selectedNode: state.navigation.selectedNode,
-    selectedNodeInformation: state.navigation.selectedNodeInformation,
   }), (dispatch: (action: Action) => void) => ({
   }), NodesInformation
 )

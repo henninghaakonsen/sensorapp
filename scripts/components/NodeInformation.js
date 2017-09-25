@@ -24,22 +24,13 @@ class NodeInfoComponent extends React.Component {
     selectedNodeInformation: NodeInformation[],
   };
 
-  state: {
-  }
-
   constructor(props: any) {
     super(props)
-    this.state = {
-    }
   }
 
   render() {
     let latencyPoints = []
     let latencyLabels = []
-    this.props.selectedNodeInformation.map((nodeInformation, i) => {
-      latencyLabels[i] = i
-      latencyPoints[i] = nodeInformation.latency
-    })
 
     const latencyData = {
       labels: latencyLabels,
@@ -71,13 +62,6 @@ class NodeInfoComponent extends React.Component {
 
     let coveragePoints = []
     let coverageLabels = []
-    let index = 0
-    this.props.selectedNodeInformation.map(nodeInformation => {
-      if(nodeInformation.type == 'coverage') {
-        coverageLabels[index] = index
-        coveragePoints[index++] = nodeInformation.coverage
-      }
-    })
 
     const coverageData = {
       labels: coverageLabels,
@@ -107,13 +91,24 @@ class NodeInfoComponent extends React.Component {
       ],
     };
 
+    let index = 0
+    this.props.selectedNodeInformation.map((nodeInformation, i) => {
+      latencyLabels[i] = i
+      latencyPoints[i] = nodeInformation.latency
+
+      if(nodeInformation.type == 'coverage') {
+        coverageLabels[index] = index
+        coveragePoints[index++] = nodeInformation.coverage
+      }
+    })
+
     return (
       this.props.selectedNode &&
       <Tabs style={{height: '100vh', width: '80vw', overflowY: 'scroll'}}>
         <Tab label="GRAPH OVERVIEW" style={{height: 50, backgroundColor: colors.accentLight}}>
-          <Line data={latencyData} width={40} height={10}
+          <Line data={latencyData} width={35} height={10}
                 options={{maintainAspectRatio: true}}/>
-          <Line data={coverageData} width={40} height={10}
+          <Line data={coverageData} width={35} height={10}
                 options={{maintainAspectRatio: true}}/>
         </Tab>
         <Tab label="RAW DATA" style={{height: 50, backgroundColor: colors.accentLight}}>

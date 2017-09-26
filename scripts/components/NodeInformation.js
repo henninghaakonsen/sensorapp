@@ -51,7 +51,9 @@ class NodeInfoComponent extends React.Component {
         let latency = latencyAvg / latencyAvgCount
         let coverage = coverageAvg / coverageAvgCount
         if(coverageAvg == 0) coverage = 0
-        newDict[dateIndex] = [dateIndex, latency, coverage]
+
+        let displayDate = dateIndex.toISOString().substring(5, 16);
+        newDict[dateIndex] = [displayDate, latency, coverage]
       }
 
       latencyAvg += nodeInformation.latency
@@ -79,11 +81,11 @@ class NodeInfoComponent extends React.Component {
       let latencyIndex = 0
       let coverageIndex = 0
       for (var key in dict) {
-        latencyLabels[latencyIndex] = latencyIndex
+        latencyLabels[latencyIndex] = dict[key][0]
         latencyPoints[latencyIndex++] = dict[key][1]
   
         if(dict[key][2] != 0) {
-          coverageLabels[coverageIndex] = coverageIndex
+          coverageLabels[coverageIndex] = dict[key][0]
           coveragePoints[coverageIndex++] = dict[key][2]
         }
       }
@@ -153,30 +155,6 @@ class NodeInfoComponent extends React.Component {
                 options={{maintainAspectRatio: true}}/>
           <Line data={coverageData} width={35} height={10}
                 options={{maintainAspectRatio: true}}/>
-        </Tab>
-        <Tab label="RAW DATA" style={{height: 50, backgroundColor: colors.accentLight}}>
-          <Table
-            multiSelectable={true}
-            >
-            <TableHeader adjustForCheckbox={true}>
-              <TableRow>
-                <TableHeaderColumn>TIMESTAMP</TableHeaderColumn>
-                <TableHeaderColumn>TYPE</TableHeaderColumn>
-                <TableHeaderColumn>LATENCY</TableHeaderColumn>
-                <TableHeaderColumn>COVERAGE</TableHeaderColumn>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              { this.props.selectedNodeInformation.map((nodeInformation, i) =>
-                <TableRow key={i} value={nodeInformation}>
-                  <TableRowColumn> {nodeInformation.timestamp} </TableRowColumn>
-                  <TableRowColumn> {nodeInformation.type} </TableRowColumn>
-                  <TableRowColumn> {nodeInformation.latency} </TableRowColumn>
-                  <TableRowColumn> {nodeInformation.coverage} </TableRowColumn>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
         </Tab>
       </Tabs>
     )

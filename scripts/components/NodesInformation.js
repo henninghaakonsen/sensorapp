@@ -38,7 +38,7 @@ class NodesInformation extends React.Component {
       let latencyIndex = 0
       let coverageIndex = 0
       let dateIndex = new Date()
-      var coeff = 1000 * 60 * 10
+      var coeff = 1000 * 60 * 30
       
       let latencyAvg = 0
       let latencyAvgCount = 0
@@ -64,7 +64,8 @@ class NodesInformation extends React.Component {
             coverage = (elem[2] + (coverageAvg / coverageAvgCount)) / 2
           }
           if(coverageAvg == 0) coverage = 0
-          elem = [dateIndex, latency, coverage]
+          let displayDate = dateIndex.toISOString().substring(5, 16);
+          elem = [displayDate, latency, coverage]
 
           newDict[dateIndex] = elem
         }
@@ -93,11 +94,11 @@ class NodesInformation extends React.Component {
     let latencyIndex = 0
     let coverageIndex = 0
     for (var key in dict) {
-      latencyLabels[latencyIndex] = latencyIndex
+      latencyLabels[latencyIndex] = dict[key][0]
       latencyPoints[latencyIndex++] = dict[key][1]
 
       if(dict[key][2] != 0) {
-        coverageLabels[coverageIndex] = coverageIndex
+        coverageLabels[coverageIndex] = dict[key][0]
         coveragePoints[coverageIndex++] = dict[key][2]
       }
     }

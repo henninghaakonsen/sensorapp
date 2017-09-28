@@ -13,6 +13,7 @@ import theme from '../styles'
 const App = () => {
   return (
     <MuiThemeProvider muiTheme={theme}>
+      <div style={{height: '100vh', width: '100vw'}}>
         <Vertical>
           <SideBar>
             <Header />
@@ -23,6 +24,7 @@ const App = () => {
             <NodeInfoComponent/>
           </Main>
         </Vertical>
+      </div>
     </MuiThemeProvider>
   )
 }

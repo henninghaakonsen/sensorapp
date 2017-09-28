@@ -38,7 +38,7 @@ class NodesInformation extends React.Component {
       let latencyIndex = 0
       let coverageIndex = 0
       let dateIndex = new Date()
-      var coeff = 1000 * 60 * 30
+      var coeff = 1000 * 60 * 10
       
       let latencyAvg = 0
       let latencyAvgCount = 0

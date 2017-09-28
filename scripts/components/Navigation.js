@@ -14,19 +14,25 @@ class Navigation extends Component {
   props: {
     nodes: Node[],
     selectedNode: Node,
-    selectedNodeInformation: NodeInformation[],
     fetchingNodes: boolean,
-    fetchNodes: () => void,
+    fromDate: Date,
+    toDate: Date,
+    limit: Number,
+    fetchNodes: (fromDate: Date, toDate: Date) => void,
     selectNode: (node: Node) => void,
     selectHome: () => void,
+    setTimeSpan: (fromDate: Date, toDate: Date) => void,
   }
 
   constructor(props) {
     super(props)
-  }
 
-  componentDidMount() {
-    this.props.fetchNodes()
+    const fromDate = new Date();
+    const toDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 1);
+
+    this.props.setTimeSpan(fromDate, toDate)
+    this.props.fetchNodes(fromDate, toDate, this.props.limit)
   }
 
   onClick(node: Node) {
@@ -112,11 +118,15 @@ const Connected = connectClass(
       nodes: state.navigation.nodes,
       selectedNode: state.navigation.selectedNode,
       fetchingNodes: state.navigation.fetchingNodes,
+      fromDate: state.navigation.fromDate,
+      toDate: state.navigation.toDate,
+      limit: state.navigation.limit,
   }),
   (dispatch: (action: Action) => void) => ({
-      fetchNodes: ( ) => dispatch({ type: 'NODES_FETCH_REQUESTED' }),
+      fetchNodes: ( fromDate: Date, toDate: Date, limit: Number ) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, limit }),
       selectNode: (node: Node) => dispatch({ type: 'NODE_SELECTED', node }),
       selectHome: ( ) => dispatch({ type: 'SELECT_HOME'}),
+      setTimeSpan: ( fromDate: date, toDate: Date) => dispatch({ type: 'SET_TIMESPAN', fromDate, toDate }),
   }), Navigation
 )
 

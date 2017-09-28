@@ -10,11 +10,13 @@ import type { Node, NodeInformation } from './types'
 
 export type Action =
     // Navigation actions
-    { type: 'NODES_FETCH_REQUESTED' }
+    { type: 'SET_TIMESPAN', fromDate: Date, toDate: Date }
+    | { type: 'SET_LIMIT', limit: Number }
+    | { type: 'NODES_FETCH_REQUESTED', fromDate: Date, toDate: Date, limit: Number }
     | { type: 'NODES_FETCH_SUCCEEDED', nodes: Node[] }
     | { type: 'NODES_FETCH_FAILED', message: string }
-    | { type: 'NODE_FETCH_REQUESTED', node: Node }
-    | { type: 'NODE_FETCH_SUCCEEDED', nodeInformation: NodeInformation[] }
+    | { type: 'NODE_FETCH_REQUESTED', node: Node, fromDate: Date, toDate: Date, limit: Number }
+    | { type: 'NODE_FETCH_SUCCEEDED', node: NodeInformation }
     | { type: 'NODE_FETCH_FAILED', message: string}
     | { type: 'NODE_QUERY_CLICKED', node: Node}
     | { type: 'NODE_SELECTED', node: Node}

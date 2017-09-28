@@ -13,7 +13,6 @@ import theme from '../styles'
 const App = () => {
   return (
     <MuiThemeProvider muiTheme={theme}>
-      <div style={{height: '100vh', width: '100vw'}}>
         <Vertical>
           <SideBar>
             <Header />
@@ -21,11 +20,9 @@ const App = () => {
             <Navigation />
           </SideBar>
           <Main>
-            <NodesInfoComponent/>
             <NodeInfoComponent/>
           </Main>
         </Vertical>
-      </div>
     </MuiThemeProvider>
   )
 }
@@ -56,12 +53,12 @@ const SideBar = ({children}) => {
   return (
     <div style={{
       backgroundColor: '#f4f4f4',
-      //boxShadow: '0px 4px 8px #444444',
+      boxShadow: '0px 4px 8px #444444',
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
       width: '20%',
-      zIndex: 0,
+      zIndex: 1,
     }}>
       { children }
     </div>

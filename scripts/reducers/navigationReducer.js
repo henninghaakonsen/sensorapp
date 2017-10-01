@@ -18,19 +18,19 @@ const initialState: Navigation = {
   fetchingChildren: false,
   fromDate: null,
   toDate: null,
-  limit: 1000,
+  limit: 0,
 }
 
 export default function navigationReducer(state: Navigation = initialState, action: Action): Navigation {
   switch (action.type) {
     case 'SET_TIMESPAN':
-      return {...state, fromDate: action.fromDate, toDate: action.toDate}
+      return { ...state, fromDate: action.fromDate, toDate: action.toDate }
 
     case 'SET_LIMIT':
-      return {...state, limit: action.limit}
-      
+      return { ...state, limit: action.limit }
+
     case 'NODES_FETCH_REQUESTED':
-      return {...state, fetchingNodes: true}
+      return { ...state, fetchingNodes: true }
 
     case 'NODES_FETCH_SUCCEEDED':
       return {
@@ -40,16 +40,16 @@ export default function navigationReducer(state: Navigation = initialState, acti
       }
 
     case 'NODES_FETCH_FAILED':
-      return {...state, nodes: [], fetchingNodes: false}
+      return { ...state, nodes: [], fetchingNodes: false }
 
     case 'NODE_SELECTED':
-      return {...state, selectedNode: action.node}
+      return { ...state, selectedNode: action.node }
 
     case 'NODE_FETCH_REQUESTED':
-      return {...state, fetchingNodes: true}
+      return { ...state, fetchingNodes: true }
 
     case 'NODE_FETCH_FAILED':
-      return {...state, selectedNode: null, selectedNodeInformation: [], fetchingNodes: false}
+      return { ...state, selectedNode: null, selectedNodeInformation: [], fetchingNodes: false }
 
     case 'NODE_FETCH_SUCCEEDED':
       return {

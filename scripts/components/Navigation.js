@@ -36,7 +36,7 @@ class Navigation extends Component {
   }
 
   onClick(node: Node) {
-    if(node == null) {
+    if (node == null) {
       this.props.selectHome()
     } else this.props.selectNode(node)
   }
@@ -48,22 +48,22 @@ class Navigation extends Component {
         overflow: 'scroll',
         height: '100%',
       }}>
-      <div style={{paddingTop: 20}} />
+        <div style={{ paddingTop: 20 }} />
 
-      { this.props.nodes &&
-        <NodeList
-          busy={this.props.fetchingNodes}
-          onClick={(node) => this.onClick(node)}
-          selectedId={this.props.selectedNode && this.props.selectedNode.id}
-          nodes={this.props.nodes}
-        />
-      }
+        {this.props.nodes &&
+          <NodeList
+            busy={this.props.fetchingNodes}
+            onClick={(node) => this.onClick(node)}
+            selectedId={this.props.selectedNode && this.props.selectedNode.id}
+            nodes={this.props.nodes}
+          />
+        }
       </div>
     )
   }
 }
 
-const NodeList = ({busy, selectedId, onClick, nodes}: {
+const NodeList = ({ busy, selectedId, onClick, nodes }: {
   busy: boolean,
   onClick: (node: NodeId) => void,
   selectedId?: string,
@@ -71,23 +71,23 @@ const NodeList = ({busy, selectedId, onClick, nodes}: {
 }) => {
   return (
     <div>
-      <h2 style={{fontWeight: 400, fontSize: fonts.large}}/>
-      { busy && <CircularProgress color={colors.accent}/>}
+      <h2 style={{ fontWeight: 400, fontSize: fonts.large }} />
+      {busy && <CircularProgress color={colors.accent} />}
       <div style={{
         overflow: 'scroll',
       }}>
-        <div style={{marginTop: 4}}>
+        <div style={{ marginTop: 4 }}>
           <Button color="#841584"
-                onClick= {() => onClick(null)}
-                text={ 'HOME' }
-                selected={ selectedId == null }/>
+            onClick={() => onClick(null)}
+            text={'HOME'}
+            selected={selectedId == null} />
         </div>
-        { nodes.map(node =>
+        {nodes.map(node =>
           <NodeUnit
-            key= {node.id}
+            key={node.id}
             onClick={() => onClick(node)}
-            selected= {selectedId ? (node.id == selectedId) : false}
-            node= {node}
+            selected={selectedId ? (node.id == selectedId) : false}
+            node={node}
           />
         )}
       </div>
@@ -95,38 +95,38 @@ const NodeList = ({busy, selectedId, onClick, nodes}: {
   )
 }
 
-const NodeUnit = ({node, onClick, selected}: {
+const NodeUnit = ({ node, onClick, selected }: {
   node: Node,
   onClick: () => void,
   selected?: boolean,
 }) => {
   return (
-    <div style={{marginTop: 4}}>
+    <div style={{ marginTop: 4 }}>
       <Button color="#841584"
-              onClick={ selected ? doNothing : () => onClick()}
-              text={ node.displayName }
-              selected={ selected }/>
-          
+        onClick={selected ? doNothing : () => onClick()}
+        text={node.displayName}
+        selected={selected} />
+
     </div>
   )
 }
 
-const doNothing = () => {}
+const doNothing = () => { }
 
 const Connected = connectClass(
   (state: AppState) => ({
-      nodes: state.navigation.nodes,
-      selectedNode: state.navigation.selectedNode,
-      fetchingNodes: state.navigation.fetchingNodes,
-      fromDate: state.navigation.fromDate,
-      toDate: state.navigation.toDate,
-      limit: state.navigation.limit,
+    nodes: state.navigation.nodes,
+    selectedNode: state.navigation.selectedNode,
+    fetchingNodes: state.navigation.fetchingNodes,
+    fromDate: state.navigation.fromDate,
+    toDate: state.navigation.toDate,
+    limit: state.navigation.limit,
   }),
   (dispatch: (action: Action) => void) => ({
-      fetchNodes: ( fromDate: Date, toDate: Date, limit: Number ) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, limit }),
-      selectNode: (node: Node) => dispatch({ type: 'NODE_SELECTED', node }),
-      selectHome: ( ) => dispatch({ type: 'SELECT_HOME'}),
-      setTimeSpan: ( fromDate: date, toDate: Date) => dispatch({ type: 'SET_TIMESPAN', fromDate, toDate }),
+    fetchNodes: (fromDate: Date, toDate: Date, limit: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, limit }),
+    selectNode: (node: Node) => dispatch({ type: 'NODE_SELECTED', node }),
+    selectHome: () => dispatch({ type: 'SELECT_HOME' }),
+    setTimeSpan: (fromDate: date, toDate: Date) => dispatch({ type: 'SET_TIMESPAN', fromDate, toDate }),
   }), Navigation
 )
 

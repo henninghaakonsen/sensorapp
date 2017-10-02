@@ -34,11 +34,11 @@ class NodeInfoComponent extends React.Component {
         selectedNodeInfo: NodeInformation,
         fromDate: Date,
         toDate: Date,
-        limit: Number,
-        fetchNodes: (fromDate: Date, toDate: Date, limit: Number) => void,
-        fetchNode: (node: Node, fromDate: Date, toDate: Date, limit: Number) => void,
+        interval: Number,
+        fetchNodes: (fromDate: Date, toDate: Date, interval: Number) => void,
+        fetchNode: (node: Node, fromDate: Date, toDate: Date, interval: Number) => void,
         setTimeSpan: (fromDate: Date, toDate: Date) => void,
-        setLimit: (limit: Number) => void,
+        setInterval: (interval: Number) => void,
     };
 
     constructor(props: any) {
@@ -46,7 +46,6 @@ class NodeInfoComponent extends React.Component {
 
         this.state = {
             open: false,
-            coeff: 10,
             autoOk: false,
             disableYearSelection: true,
             fetchGraphData: false,
@@ -54,7 +53,7 @@ class NodeInfoComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.fromDate != this.props.fromDate || nextProps.toDate != this.props.toDate || nextProps.limit != this.props.limit) {
+        if (nextProps.fromDate != this.props.fromDate || nextProps.toDate != this.props.toDate || nextProps.interval != this.props.interval) {
             this.props.setTimeSpan(nextProps.fromDate, nextProps.toDate)
             this.setState({ fetchGraphData: true });
         }
@@ -66,18 +65,14 @@ class NodeInfoComponent extends React.Component {
 
     handleClose = () => {
         if (this.state.fetchGraphData) {
-            !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.limit)
-            this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.limit)
+            !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
+            this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
         }
 
         this.setState({ open: false, fetchGraphData: false });
     };
 
-    handleChange = (event, index, coeff) => this.setState({ coeff });
-
-    handleLimitChange = (event) => {
-        this.props.setLimit(event.target.value)
-    };
+    handleChange = (event, index, interval) => this.props.setInterval(interval);
 
     handleChangefromDate = (event, date) => {
         this.props.setTimeSpan(date, this.props.toDate);
@@ -90,14 +85,15 @@ class NodeInfoComponent extends React.Component {
     refreshGraph = () => {
         this.props.setTimeSpan(this.props.fromDate, new Date())
 
-        !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.limit)
-        this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.limit)
+        !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
+        this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
     }
 
     handleNodeInfo(nodeInfo: NodeInformation): {} {
+        console.log("length: ", nodeInfo.length)
         let newDict = {}
 
-        var coeff = 1000 * 60 * this.state.coeff
+        var coeff = 1000 * 60 * this.props.interval
 
         let dateIndexFrom = new Date((Math.round(this.props.fromDate.getTime() / coeff) * coeff) - coeff)
         let dateIndexTo = new Date(dateIndexFrom.getTime() + coeff)
@@ -113,10 +109,14 @@ class NodeInfoComponent extends React.Component {
         let nodeInfoLength = nodeInfo.length;
         let setDateIndex = true
 
+        if (nodeInfoLength == 0) return {}
+
         let currentDate = new Date(nodeInfo[0].timestamp)
         let i = 1
 
+        let counter = 0
         while (currentDate.getTime() < this.props.toDate.getTime()) {
+            counter++
             let displayDate = dateFormat(dateIndexFrom, "dd/mm/yy HH:MM");
 
             if ((currentDate.getTime() >= dateIndexFrom.getTime() && currentDate.getTime() <= dateIndexTo.getTime()) && i < nodeInfoLength) {
@@ -144,40 +144,54 @@ class NodeInfoComponent extends React.Component {
 
                 dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
                 dateIndexTo = new Date(dateIndexTo.getTime() + coeff)
-                
-                if(i == nodeInfoLength) currentDate = dateIndexTo
+
+                if (i >= nodeInfoLength) currentDate = dateIndexTo
             }
+            if (counter == 10000) break
         }
-        
+
+        console.log("counter: " + counter, newDict)
+
         return newDict
     }
 
     makeAverageDict(): {} {
         let dicts = {}
 
-        for (let i = 0; i < this.props.nodes.length; i++) {
-            dicts[i] = this.handleNodeInfo(this.props.nodes[i].nodeInfo);
-        }
+        var start = new Date().getTime();
 
+        /*for (let i = 0; i < this.props.nodes.length; i++) {
+            var startI = new Date().getTime();
+            dicts[i] = this.handleNodeInfo(this.props.nodes[i].nodeInfo);
+            console.log('Execution time in: ', new Date() - startI, "ms");
+        }*/
+
+        console.log(dicts)
+        console.log('Execution time handleNodes: ', new Date() - start, "ms");
+
+        start = new Date().getTime()
         let index = 0
         let newDict = {}
-        for(var key in dicts[0]) {
+        for (let i = 0; i < this.props.nodes[0].length; i++) {
             let latency = 0
             let latencyCount = 0
             let coverage = 0
             let coverageCount = 0
-            for(let i = 0; i < Object.keys(dicts).length; i++) {
+            let key = this.props.nodes[0][i].timestamp
+            for (let i = 0; i < Object.keys(dicts).length; i++) {
                 latency = latency + dicts[i][key][0]
                 latencyCount++
 
                 coverage = coverage + dicts[i][key][1]
-                if(dicts[i][key].coverage != 0) coverageCount++
-
+                if (dicts[i][key].coverage != 0) coverageCount++
             }
             newDict[key] = []
             newDict[key][0] = latencyCount != 0 ? latency / latencyCount : 0
             newDict[key][1] = coverageCount != 0 ? coverage / coverageCount : -120
         }
+
+        console.log('Execution time map: ', new Date() - start, "ms");
+
 
         return newDict
     }
@@ -194,21 +208,27 @@ class NodeInfoComponent extends React.Component {
         let coverageLabels = []
 
         let dict = {}
+        var start = new Date().getTime();
+
         if (this.props.selectedNodeInfo) {
-            dict = this.makeDict(this.props.selectedNodeInfo)
-        } else if(this.props.nodes.length != 0) {
+            dict = this.props.selectedNodeInfo
+        } else if (this.props.nodes.length != 0) {
             dict = this.makeAverageDict()
         }
+        console.log(dict)
 
         let latencyIndex = 0
         let coverageIndex = 0
         for (var key in dict) {
-            latencyLabels[latencyIndex] = key
-            latencyPoints[latencyIndex++] = dict[key][0]
+            let dateIndex = dateFormat(dict[key].timestamp, "dd/mm/yy HH:MM")
+            latencyLabels[latencyIndex] = dateIndex
+            latencyPoints[latencyIndex++] = dict[key].latency
 
-            coverageLabels[coverageIndex] = key
-            coveragePoints[coverageIndex++] = dict[key][1]
+            coverageLabels[coverageIndex] = dateIndex
+            coveragePoints[coverageIndex++] = dict[key].coverage
         }
+
+        console.log('Execution time: ', new Date() - start, "ms - ", latencyPoints.length);
 
         const latencyData = {
             labels: latencyLabels,
@@ -234,6 +254,7 @@ class NodeInfoComponent extends React.Component {
                     pointRadius: 1,
                     pointHitRadius: 10,
                     data: latencyPoints,
+                    spanGaps: true,
                 },
             ],
         }
@@ -262,6 +283,7 @@ class NodeInfoComponent extends React.Component {
                     pointRadius: 1,
                     pointHitRadius: 10,
                     data: coveragePoints,
+                    spanGaps: true,
                 },
             ],
         };
@@ -296,10 +318,8 @@ class NodeInfoComponent extends React.Component {
                         width: '96%',
                         paddingLeft: '2%',
                     }}>
-                        <Line data={latencyData} width={35} height={10}
-                            options={{ maintainAspectRatio: true }} />
-                        <Line data={coverageData} width={35} height={10}
-                            options={{ maintainAspectRatio: true }} />
+                        <Line data={latencyData} width={35} height={10} />
+                        <Line data={coverageData} width={35} height={10} />
                     </div>
 
 
@@ -333,7 +353,7 @@ class NodeInfoComponent extends React.Component {
                             />
                             <SelectField
                                 floatingLabelText="Frequency"
-                                value={this.state.coeff}
+                                value={this.props.interval}
                                 onChange={this.handleChange}
                             >
                                 {this.props.selectedNode && <MenuItem value={-1} primaryText="Everything" />}
@@ -342,12 +362,6 @@ class NodeInfoComponent extends React.Component {
                                 <MenuItem value={30} primaryText="30 min" />
                                 <MenuItem value={60} primaryText="Hourly" />
                             </SelectField>
-                            <TextField
-                                id="Limit"
-                                floatingLabelText="Limit"
-                                value={this.props.limit != 0 ? this.props.limit : ""}
-                                onChange={this.handleLimitChange}
-                            />
                         </div>
                     </Dialog>
                 </Tab>
@@ -364,12 +378,12 @@ const Connected = connectClass(
         selectedNodeInfo: state.navigation.selectedNode && state.navigation.selectedNode.nodeInfo,
         fromDate: state.navigation.fromDate,
         toDate: state.navigation.toDate,
-        limit: state.navigation.limit,
+        interval: state.navigation.interval,
     }), (dispatch: (action: Action) => void) => ({
         setTimeSpan: (fromDate: date, toDate: Date) => dispatch({ type: 'SET_TIMESPAN', fromDate, toDate }),
-        setLimit: (limit: Number) => dispatch({ type: 'SET_LIMIT', limit }),
-        fetchNodes: (fromDate: date, toDate: Date, limit: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, limit }),
-        fetchNode: (node: Node, fromDate: date, toDate: Date, limit: Number) => dispatch({ type: 'NODE_FETCH_REQUESTED', node, fromDate, toDate, limit }),
+        setInterval: (interval: Number) => dispatch({ type: 'SET_INTERVAL', interval }),
+        fetchNodes: (fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, interval }),
+        fetchNode: (node: Node, fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODE_FETCH_REQUESTED', node, fromDate, toDate, interval }),
     }), NodeInfoComponent
 )
 

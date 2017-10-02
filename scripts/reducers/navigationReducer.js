@@ -9,7 +9,7 @@ export type Navigation = {
   fetchingChildren: boolean,
   fromDate: Date,
   toDate: Date,
-  limit: Number,
+  interval: Number,
 }
 
 const initialState: Navigation = {
@@ -18,7 +18,7 @@ const initialState: Navigation = {
   fetchingChildren: false,
   fromDate: null,
   toDate: null,
-  limit: 0,
+  interval: 5,
 }
 
 export default function navigationReducer(state: Navigation = initialState, action: Action): Navigation {
@@ -26,8 +26,8 @@ export default function navigationReducer(state: Navigation = initialState, acti
     case 'SET_TIMESPAN':
       return { ...state, fromDate: action.fromDate, toDate: action.toDate }
 
-    case 'SET_LIMIT':
-      return { ...state, limit: action.limit }
+    case 'SET_INTERVAL':
+      return { ...state, interval: action.interval }
 
     case 'NODES_FETCH_REQUESTED':
       return { ...state, fetchingNodes: true }
@@ -57,7 +57,7 @@ export default function navigationReducer(state: Navigation = initialState, acti
         selectedNode: action.node,
         fetchingNodes: false
       }
-
+    
     case 'SELECT_HOME':
       return {
         ...state,

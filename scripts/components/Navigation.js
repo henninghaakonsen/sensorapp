@@ -17,7 +17,7 @@ class Navigation extends Component {
     fetchingNodes: boolean,
     fromDate: Date,
     toDate: Date,
-    limit: Number,
+    interval: Number,
     fetchNodes: (fromDate: Date, toDate: Date) => void,
     selectNode: (node: Node) => void,
     selectHome: () => void,
@@ -32,7 +32,7 @@ class Navigation extends Component {
     fromDate.setDate(fromDate.getDate() - 1);
 
     this.props.setTimeSpan(fromDate, toDate)
-    this.props.fetchNodes(fromDate, toDate, this.props.limit)
+    this.props.fetchNodes(fromDate, toDate, this.props.interval)
   }
 
   onClick(node: Node) {
@@ -120,10 +120,10 @@ const Connected = connectClass(
     fetchingNodes: state.navigation.fetchingNodes,
     fromDate: state.navigation.fromDate,
     toDate: state.navigation.toDate,
-    limit: state.navigation.limit,
+    interval: state.navigation.interval,
   }),
   (dispatch: (action: Action) => void) => ({
-    fetchNodes: (fromDate: Date, toDate: Date, limit: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, limit }),
+    fetchNodes: (fromDate: Date, toDate: Date, interval: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, interval }),
     selectNode: (node: Node) => dispatch({ type: 'NODE_SELECTED', node }),
     selectHome: () => dispatch({ type: 'SELECT_HOME' }),
     setTimeSpan: (fromDate: date, toDate: Date) => dispatch({ type: 'SET_TIMESPAN', fromDate, toDate }),

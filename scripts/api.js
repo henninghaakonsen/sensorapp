@@ -30,24 +30,24 @@ function rejectFetchFailures(response) {
       Promise.reject(response)
 }
 
-export function fetchNodeList(fromDate: String, toDate: String, limit: Number): Promise<Node[]> {
+export function fetchNodeList(fromDate: String, toDate: String, interval: Number): Promise<Node[]> {
   return fetch(`${apiServer}/nodes`, fetchNodesOptions)
       .then(rejectFetchFailures)
       .then(response => response.json())
       .then(({ nodes }) =>
         Promise.all(nodes.map(node => {
-          return fetchOneNode(node, fromDate, toDate, limit)
+          return fetchOneNodeAverage(node, fromDate, toDate, interval)
             .then(nodeInfo => ({
                 id: node.id,
                 displayName: node.displayName,
-                nodeInfo: nodeInfo.reverse(),
+                nodeInfo: nodeInfo,
             }))
           })))
       .then(nodes => nodes);
 }
 
-export function fetchOneNode( node: Node, fromDate: String, toDate: String, limit: Number ): Promise< NodeInformation[]> {
-  return fetch(`${apiServer}/nodes/${node.id}?limit=${limit}&fromDate=${fromDate}&toDate=${toDate}`, fetchNodeInformationOptions)
+export function fetchOneNode( node: Node, fromDate: String, toDate: String, interval: Number ): Promise< NodeInformation[]> {
+  return fetch(`${apiServer}/nodes/${node.id}?interval=${interval}&fromDate=${fromDate}&toDate=${toDate}`, fetchNodeInformationOptions)
     .then(rejectFetchFailures)
     .then(response => response.json())
     .then(({ information }) => information.map(node => ({
@@ -57,3 +57,14 @@ export function fetchOneNode( node: Node, fromDate: String, toDate: String, limi
       coverage: node.coverage,
     })));
 }
+
+export function fetchOneNodeAverage( node: Node, fromDate: String, toDate: String, interval: Number ): Promise< NodeInformation[]> {
+    return fetch(`${apiServer}/nodes/${node.id}?interval=${interval}&fromDate=${fromDate}&toDate=${toDate}`, fetchNodeInformationOptions)
+      .then(rejectFetchFailures)
+      .then(response => response.json())
+      .then(({ information }) => information.map(node => ({
+        timestamp: node.timestamp,
+        latency: node.latency,
+        coverage: node.coverage,
+      })));
+  }

@@ -20,9 +20,6 @@ import RaisedButton from 'material-ui/RaisedButton';
 import DatePicker from 'material-ui/DatePicker';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
-import TextField from 'material-ui/TextField';
-
-var dateFormat = require('dateformat');
 
 import { Line } from 'react-chartjs-2';
 
@@ -39,6 +36,7 @@ class NodeInfoComponent extends React.Component {
         fetchNode: (node: Node, fromDate: Date, toDate: Date, interval: Number) => void,
         setTimeSpan: (fromDate: Date, toDate: Date) => void,
         setInterval: (interval: Number) => void,
+        generateAverages: () => void,
     };
 
     constructor(props: any) {
@@ -89,115 +87,55 @@ class NodeInfoComponent extends React.Component {
         this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
     }
 
-    handleNodeInfo(nodeInfo: NodeInformation): {} {
-        console.log("length: ", nodeInfo.length)
-        let newDict = {}
-
-        var coeff = 1000 * 60 * this.props.interval
-
-        let dateIndexFrom = new Date((Math.round(this.props.fromDate.getTime() / coeff) * coeff) - coeff)
-        let dateIndexTo = new Date(dateIndexFrom.getTime() + coeff)
-
-        let latencyIndex = 0
-        let coverageIndex = 0
-
-        let latencyAvg = 0
-        let latencyAvgCount = 0
-
-        let coverageAvg = 0
-        let coverageAvgCount = 0
-        let nodeInfoLength = nodeInfo.length;
-        let setDateIndex = true
-
-        if (nodeInfoLength == 0) return {}
-
-        let currentDate = new Date(nodeInfo[0].timestamp)
-        let i = 1
-
-        let counter = 0
-        while (currentDate.getTime() < this.props.toDate.getTime()) {
-            counter++
-            let displayDate = dateFormat(dateIndexFrom, "dd/mm/yy HH:MM");
-
-            if ((currentDate.getTime() >= dateIndexFrom.getTime() && currentDate.getTime() <= dateIndexTo.getTime()) && i < nodeInfoLength) {
-                let elem = newDict[displayDate]
-
-                if (elem == undefined) {
-                    elem = []
-                    elem[0] = nodeInfo[i].latency
-                    elem[1] = nodeInfo[i].coverage
-                } else {
-                    elem[0] = (nodeInfo[i].latency + elem[0]) / 2
-                    elem[1] = nodeInfo[i].coverage != 0 ? (nodeInfo[i].coverage + elem[1]) / 2 : elem[1]
-                }
-
-                newDict[displayDate] = elem
-                currentDate = new Date(nodeInfo[i].timestamp)
-                i++
-
-                if (currentDate.getTime() >= dateIndexTo.getTime()) {
-                    dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
-                    dateIndexTo = new Date(dateIndexFrom.getTime() + coeff)
-                }
-            } else {
-                newDict[displayDate] = [0, -120]
-
-                dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
-                dateIndexTo = new Date(dateIndexTo.getTime() + coeff)
-
-                if (i >= nodeInfoLength) currentDate = dateIndexTo
-            }
-            if (counter == 10000) break
-        }
-
-        console.log("counter: " + counter, newDict)
-
-        return newDict
+    generateAverages = () => {
+        this.props.generateAverages()
     }
 
     makeAverageDict(): {} {
-        let dicts = {}
-
-        var start = new Date().getTime();
-
-        /*for (let i = 0; i < this.props.nodes.length; i++) {
-            var startI = new Date().getTime();
-            dicts[i] = this.handleNodeInfo(this.props.nodes[i].nodeInfo);
-            console.log('Execution time in: ', new Date() - startI, "ms");
-        }*/
-
-        console.log(dicts)
-        console.log('Execution time handleNodes: ', new Date() - start, "ms");
-
-        start = new Date().getTime()
-        let index = 0
         let newDict = {}
-        for (let i = 0; i < this.props.nodes[0].length; i++) {
-            let latency = 0
-            let latencyCount = 0
-            let coverage = 0
-            let coverageCount = 0
-            let key = this.props.nodes[0][i].timestamp
-            for (let i = 0; i < Object.keys(dicts).length; i++) {
-                latency = latency + dicts[i][key][0]
-                latencyCount++
 
-                coverage = coverage + dicts[i][key][1]
-                if (dicts[i][key].coverage != 0) coverageCount++
+        for (let i = 0; i < this.props.nodes.length; i++) {
+            for (let j = 0; j < Object.keys(this.props.nodes[i].nodeInfo).length; j++) {
+                let key = this.props.nodes[i].nodeInfo[j].timestamp
+                let elem = newDict[key]
+
+                if (elem == undefined) {
+                    elem = []
+                    elem.timestamp = this.props.nodes[i].nodeInfo[j].timestamp
+                    elem.latency = this.props.nodes[i].nodeInfo[j].latency
+                    elem.coverage = this.props.nodes[i].nodeInfo[j].coverage
+                    elem.latencyCount = 1
+                    elem.coverageCount = 1
+                } else {
+                    elem.latencyCount = this.props.nodes[i].nodeInfo[j].latency != 0 ? elem.latencyCount + 1 : elem.latencyCount
+                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? elem.coverageCount + 1 : elem.coverageCount
+                    elem.latency = this.props.nodes[i].nodeInfo[j].latency != 0 ? this.props.nodes[i].nodeInfo[j].latency + elem.latency : elem.latency
+                    elem.coverage = this.props.nodes[i].nodeInfo[j].coverage != -120 ? this.props.nodes[i].nodeInfo[j].coverage + elem.coverage : elem.coverage
+                }
+                newDict[key] = elem
             }
-            newDict[key] = []
-            newDict[key][0] = latencyCount != 0 ? latency / latencyCount : 0
-            newDict[key][1] = coverageCount != 0 ? coverage / coverageCount : -120
         }
 
-        console.log('Execution time map: ', new Date() - start, "ms");
-
+        for(var key in newDict) {
+            let elem = newDict[key]
+            elem.latency = elem.latency / elem.latencyCount
+            elem.coverage = elem.coverage / elem.coverageCount
+            newDict[key] = elem
+        }
 
         return newDict
     }
 
-    makeDict(nodeInfo: NodeInformation): {} {
-        return this.handleNodeInfo(nodeInfo)
+    handleSelectedNodeInfo(nodeInfo: NodeInformation[]): {} {
+        let dict = {}
+        for (let i = 0; i < nodeInfo.length; i++) {
+            let key = new Date(nodeInfo[i].timestamp).toISOString()
+            dict[key] = []
+            dict[key].latency = nodeInfo[i].latency
+            dict[key].coverage = nodeInfo[i].coverage
+        }
+
+        return dict
     }
 
     render() {
@@ -207,28 +145,43 @@ class NodeInfoComponent extends React.Component {
         let coveragePoints = []
         let coverageLabels = []
 
-        let dict = {}
-        var start = new Date().getTime();
+        var coeff = 1000 * 60 * this.props.interval
+        let dateIndexFrom = new Date((Math.round(this.props.fromDate.getTime() / coeff) * coeff) - coeff)
 
+        let i = 0
+        let preDict = {}
+        while(dateIndexFrom.getTime() < this.props.toDate.getTime()) {
+            preDict[dateIndexFrom.toISOString()] = []
+            preDict[dateIndexFrom.toISOString()].latency = 0
+            preDict[dateIndexFrom.toISOString()].coverage = -120
+
+            dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
+        }
+
+        console.log(preDict)
+
+        let dict = {}
         if (this.props.selectedNodeInfo) {
-            dict = this.props.selectedNodeInfo
+            dict = this.handleSelectedNodeInfo(this.props.selectedNodeInfo)
         } else if (this.props.nodes.length != 0) {
             dict = this.makeAverageDict()
         }
+
         console.log(dict)
 
         let latencyIndex = 0
         let coverageIndex = 0
-        for (var key in dict) {
-            let dateIndex = dateFormat(dict[key].timestamp, "dd/mm/yy HH:MM")
-            latencyLabels[latencyIndex] = dateIndex
-            latencyPoints[latencyIndex++] = dict[key].latency
+        for (var key in preDict) {
+            let exists = dict[key]
 
-            coverageLabels[coverageIndex] = dateIndex
-            coveragePoints[coverageIndex++] = dict[key].coverage
+            latencyLabels[latencyIndex] = new Date(key)
+            latencyPoints[latencyIndex++] = exists != undefined ? dict[key].latency : preDict[key].latency
+
+            coverageLabels[coverageIndex] = new Date(key)
+            coveragePoints[coverageIndex++] = exists != undefined ? dict[key].coverage : preDict[key].coverage
         }
 
-        console.log('Execution time: ', new Date() - start, "ms - ", latencyPoints.length);
+        console.log(latencyLabels)
 
         const latencyData = {
             labels: latencyLabels,
@@ -296,6 +249,31 @@ class NodeInfoComponent extends React.Component {
                 onClick={this.handleClose}
             />,
         ];
+
+        const options = {
+            animation: {
+                duration: 0, // general animation time
+            },
+            hover: {
+                animationDuration: 0, // duration of animations when hovering an item
+            },
+            responsiveAnimationDuration: 0, // animation duration after a resize
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    unit: 'day',
+                    time: {
+                        displayFormats: {
+                            minute: 'HH:mm',
+                            hour: 'HH:mm',
+                            day: 'MMM D HH:mm',
+                        }
+                    },
+                    distribution: 'series' //linear
+                }]
+            }
+        }
+
         return (
             <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
                 <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
@@ -308,6 +286,7 @@ class NodeInfoComponent extends React.Component {
                     }}>
                         <RaisedButton label="Edit" onClick={this.handleOpen} />
                         <RaisedButton label="Refresh" onClick={this.refreshGraph} />
+                        <RaisedButton label="Generate averages" onClick={this.generateAverages} />
                     </div>
 
                     <div style={{
@@ -318,10 +297,9 @@ class NodeInfoComponent extends React.Component {
                         width: '96%',
                         paddingLeft: '2%',
                     }}>
-                        <Line data={latencyData} width={35} height={10} />
-                        <Line data={coverageData} width={35} height={10} />
+                        <Line data={latencyData} options={options} width={35} height={10} />
+                        <Line data={coverageData} options={options} width={35} height={10} />
                     </div>
-
 
                     <Dialog
                         title="Configure graphs"
@@ -356,7 +334,6 @@ class NodeInfoComponent extends React.Component {
                                 value={this.props.interval}
                                 onChange={this.handleChange}
                             >
-                                {this.props.selectedNode && <MenuItem value={-1} primaryText="Everything" />}
                                 <MenuItem value={5} primaryText="5 min" />
                                 <MenuItem value={10} primaryText="10 min" />
                                 <MenuItem value={30} primaryText="30 min" />
@@ -384,6 +361,7 @@ const Connected = connectClass(
         setInterval: (interval: Number) => dispatch({ type: 'SET_INTERVAL', interval }),
         fetchNodes: (fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, interval }),
         fetchNode: (node: Node, fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODE_FETCH_REQUESTED', node, fromDate, toDate, interval }),
+        generateAverages: () => dispatch({ type: 'GENERATE_AVERAGES' }),
     }), NodeInfoComponent
 )
 

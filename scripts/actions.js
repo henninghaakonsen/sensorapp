@@ -23,4 +23,5 @@ export type Action =
     | { type: 'NODE_FETCH_AVERAGE_FAILED', message: String }
     | { type: 'NODE_QUERY_CLICKED', node: Node}
     | { type: 'NODE_SELECTED', node: Node}
-    | { type: 'SELECT_HOME' };
+    | { type: 'SELECT_HOME' }
+    | { type: 'GENERATE_AVERAGES' };

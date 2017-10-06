@@ -7,6 +7,7 @@ import type { Node } from '../types'
 import {
   fetchNodeList,
   fetchOneNodeAverage,
+  generateAverages,
 } from '../api'
 
 export function typedAction(action: any): Action {
@@ -25,7 +26,6 @@ function* fetchNodes(fromDate: Date, toDate: Date, interval: Number) {
   
   try {
     const nodes = yield call(fetchNodeList, dateISO[0], dateISO[1], interval)
-    console.log(nodes)
     yield put({type: 'NODES_FETCH_SUCCEEDED', nodes})
   } catch (e) {
     yield put({type: 'NODES_FETCH_FAILED', message: e.message})
@@ -62,6 +62,15 @@ function* nodeQueryClicked(node: Node) {
   }
 }
 
+function* generateAveragesSaga() {
+  try {
+    const nodeInformation = yield call(generateAverages)
+    yield put({type: 'GENERATE_AVERAGES_SUCCEEDED', nodeInformation})
+  } catch (e) {
+    yield put({type: 'GENERATE_AVERAGES_FAILED', message: e.message})
+  }
+}
+
 function* handleRequests(): Generator<*,*,*> {
   while (true) {
     const action = typedAction(yield take())
@@ -69,6 +78,7 @@ function* handleRequests(): Generator<*,*,*> {
       case 'NODES_FETCH_REQUESTED': yield fork(fetchNodes, action.fromDate, action.toDate, action.interval); break
       case 'NODE_FETCH_REQUESTED': yield fork(fetchNode, action.node, action.fromDate, action.toDate, action.interval); break
       case 'NODE_QUERY_CLICKED': yield fork(nodeQueryClicked, action.node); break
+      case 'GENERATE_AVERAGES': yield fork(generateAveragesSaga); break
     }
   }
 }

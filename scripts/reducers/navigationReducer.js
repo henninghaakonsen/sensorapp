@@ -18,7 +18,7 @@ const initialState: Navigation = {
   fetchingChildren: false,
   fromDate: null,
   toDate: null,
-  interval: 5,
+  interval: 10,
 }
 
 export default function navigationReducer(state: Navigation = initialState, action: Action): Navigation {
@@ -57,13 +57,19 @@ export default function navigationReducer(state: Navigation = initialState, acti
         selectedNode: action.node,
         fetchingNodes: false
       }
-    
+
     case 'SELECT_HOME':
       return {
         ...state,
         selectedNode: null,
         selectedNodeInformation: []
       }
+
+    case 'GENERATE_AVERAGES_SUCCEEDED':
+      return { ...state }
+
+    case 'GENERATE_AVERAGES_FAILED':
+      return { ...state }
 
     default:
       return state

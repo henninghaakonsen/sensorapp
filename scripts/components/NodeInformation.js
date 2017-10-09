@@ -146,19 +146,19 @@ class NodeInfoComponent extends React.Component {
         let coverageLabels = []
 
         var coeff = 1000 * 60 * this.props.interval
-        let dateIndexFrom = new Date((Math.round(this.props.fromDate.getTime() / coeff) * coeff) - coeff)
+        let timeoffset = new Date().getTimezoneOffset()
+        let dateIndexFrom = new Date(((Math.round(this.props.fromDate.getTime() / coeff) * coeff) - coeff) - (timeoffset * 1000 * 60))
 
         let i = 0
         let preDict = {}
         while(dateIndexFrom.getTime() < this.props.toDate.getTime()) {
-            preDict[dateIndexFrom.toISOString()] = []
-            preDict[dateIndexFrom.toISOString()].latency = 0
-            preDict[dateIndexFrom.toISOString()].coverage = -120
+            const dateIndexString = dateIndexFrom.toISOString()
+            preDict[dateIndexString] = []
+            preDict[dateIndexString].latency = 0
+            preDict[dateIndexString].coverage = -120
 
             dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
         }
-
-        console.log(preDict)
 
         let dict = {}
         if (this.props.selectedNodeInfo) {
@@ -167,22 +167,20 @@ class NodeInfoComponent extends React.Component {
             dict = this.makeAverageDict()
         }
 
-        console.log(dict)
-
         let latencyIndex = 0
         let coverageIndex = 0
         for (var key in preDict) {
             let exists = dict[key]
 
-            latencyLabels[latencyIndex] = new Date(key)
+            let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
+            latencyLabels[latencyIndex] = time
             latencyPoints[latencyIndex++] = exists != undefined ? dict[key].latency : preDict[key].latency
 
-            coverageLabels[coverageIndex] = new Date(key)
+            coverageLabels[coverageIndex] = time
             coveragePoints[coverageIndex++] = exists != undefined ? dict[key].coverage : preDict[key].coverage
         }
 
-        console.log(latencyLabels)
-
+        let length = latencyPoints.length
         const latencyData = {
             labels: latencyLabels,
             datasets: [
@@ -205,7 +203,7 @@ class NodeInfoComponent extends React.Component {
                     pointHoverBorderColor: colors.accentLight,
                     pointHoverBorderWidth: 2,
                     pointRadius: 1,
-                    pointHitRadius: 10,
+                    pointHitRadius: length > 500 ? 5 : 10,
                     data: latencyPoints,
                     spanGaps: true,
                 },
@@ -234,7 +232,7 @@ class NodeInfoComponent extends React.Component {
                     pointHoverBorderColor: colors.accentLight,
                     pointHoverBorderWidth: 2,
                     pointRadius: 1,
-                    pointHitRadius: 10,
+                    pointHitRadius: length > 500 ? 5 : 10,
                     data: coveragePoints,
                     spanGaps: true,
                 },
@@ -252,7 +250,7 @@ class NodeInfoComponent extends React.Component {
 
         const options = {
             animation: {
-                duration: 0, // general animation time
+                duration: length > 500 ? 0 : 500, // general animation time - switch to non animation when passing 500 points. With 5 min interval this is ~2 days.
             },
             hover: {
                 animationDuration: 0, // duration of animations when hovering an item

@@ -15,7 +15,7 @@ const capitalizeFirstLetter = (string: string) => {
 class Search extends Component {
   props: {
     nodes: Node[],
-    fetchNode: (node: Node) => void,
+    selectNode: (node: Node) => void,
   }
 
   sourceIndex(query: string, data: any) {
@@ -28,7 +28,7 @@ class Search extends Component {
       this.props.nodes[index]
 
     if (selection) {
-      this.props.fetchNode(selection)
+      this.props.selectNode(selection)
     }
   }
 
@@ -62,9 +62,7 @@ const Connected = connectClass(
     nodes: state.navigation.nodes,
   }),
   (dispatch: (action: Action) => void) => ({
-    fetchNode: (node: Node) => dispatch(
-      {type: 'NODE_QUERY_CLICKED', node: node}
-    ),
+    selectNode: (node: Node) => dispatch({ type: 'NODE_SELECTED', node }),
   }),
   Search
 )

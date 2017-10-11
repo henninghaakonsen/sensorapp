@@ -27,9 +27,10 @@ class Navigation extends Component {
   constructor(props) {
     super(props)
 
-    const fromDate = new Date();
-    const toDate = new Date();
-    fromDate.setDate(fromDate.getDate() - 1);
+    var coeff = 1000 * 60 * this.props.interval
+    const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
+    const fromDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff);
+    fromDate.setDate(fromDate.getDate() - 1)
 
     this.props.setTimeSpan(fromDate, toDate)
     this.props.fetchNodes(fromDate, toDate, this.props.interval)

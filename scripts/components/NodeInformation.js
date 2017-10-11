@@ -21,6 +21,7 @@ import DatePicker from 'material-ui/DatePicker';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 
+import TimePicker from 'material-ui/TimePicker';
 import { Line } from 'react-chartjs-2';
 
 class NodeInfoComponent extends React.Component {
@@ -90,6 +91,13 @@ class NodeInfoComponent extends React.Component {
     generateAverages = () => {
         this.props.generateAverages()
     }
+    handleFromHourMinuteChange = (event, date) => {
+        this.props.setTimeSpan(date, this.props.toDate)
+    };
+
+    handleToHourMinuteChange = (event, date) => {
+        this.props.setTimeSpan(this.props.fromDate, date)
+    };
 
     makeAverageDict(): {} {
         let newDict = {}
@@ -116,7 +124,7 @@ class NodeInfoComponent extends React.Component {
             }
         }
 
-        for(var key in newDict) {
+        for (var key in newDict) {
             let elem = newDict[key]
             elem.latency = elem.latency / elem.latencyCount
             elem.coverage = elem.coverage / elem.coverageCount
@@ -147,11 +155,11 @@ class NodeInfoComponent extends React.Component {
 
         var coeff = 1000 * 60 * this.props.interval
         let timeoffset = new Date().getTimezoneOffset()
-        let dateIndexFrom = new Date(((Math.round(this.props.fromDate.getTime() / coeff) * coeff) - coeff) - (timeoffset * 1000 * 60))
+        let dateIndexFrom = new Date(this.props.fromDate.getTime() - (timeoffset * 1000 * 60))
 
         let i = 0
         let preDict = {}
-        while(dateIndexFrom.getTime() < this.props.toDate.getTime()) {
+        while (dateIndexFrom.getTime() < this.props.toDate.getTime()) {
             const dateIndexString = dateIndexFrom.toISOString()
             preDict[dateIndexString] = []
             preDict[dateIndexString].latency = 0
@@ -272,6 +280,12 @@ class NodeInfoComponent extends React.Component {
             }
         }
 
+        const selectorFieldStyles = {
+            customWidth: {
+                width: 150,
+            },
+        };
+
         return (
             <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
                 <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
@@ -320,6 +334,15 @@ class NodeInfoComponent extends React.Component {
                                 defaultDate={this.props.fromDate}
                                 disableYearSelection={this.state.disableYearSelection}
                             />
+                            <TimePicker
+                                floatingLabelText="From"
+                                minutesStep={this.props.interval}
+                                defaultTime={this.props.fromDate}
+                                format="24hr"
+                                autoOk={true}
+                                onChange={this.handleFromHourMinuteChange}
+                            />
+
                             <DatePicker
                                 onChange={this.handleChangetoDate}
                                 floatingLabelText="To"
@@ -327,6 +350,15 @@ class NodeInfoComponent extends React.Component {
                                 defaultDate={this.props.toDate}
                                 disableYearSelection={this.state.disableYearSelection}
                             />
+                            <TimePicker
+                                floatingLabelText="To"
+                                minutesStep={this.props.interval}
+                                defaultTime={this.props.toDate}
+                                format="24hr"
+                                autoOk={true}
+                                onChange={this.handleToHourMinuteChange}
+                            />
+
                             <SelectField
                                 floatingLabelText="Frequency"
                                 value={this.props.interval}
@@ -338,6 +370,7 @@ class NodeInfoComponent extends React.Component {
                                 <MenuItem value={60} primaryText="Hourly" />
                             </SelectField>
                         </div>
+
                     </Dialog>
                 </Tab>
             </Tabs>

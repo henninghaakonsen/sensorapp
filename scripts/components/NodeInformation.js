@@ -159,13 +159,17 @@ class NodeInfoComponent extends React.Component {
 
         let i = 0
         let preDict = {}
-        while (dateIndexFrom.getTime() < this.props.toDate.getTime()) {
-            const dateIndexString = dateIndexFrom.toISOString()
-            preDict[dateIndexString] = []
-            preDict[dateIndexString].latency = 0
-            preDict[dateIndexString].coverage = -120
+        let tempToTime = this.props.toDate.getTime()
+        tempToTime = tempToTime - (1000 * 60 * this.props.toDate.getTimezoneOffset())
+        if (this.props.interval != 0) {
+            while (dateIndexFrom.getTime() < tempToTime) {
+                const dateIndexString = dateIndexFrom.toISOString()
+                preDict[dateIndexString] = []
+                preDict[dateIndexString].latency = 0
+                preDict[dateIndexString].coverage = -120
 
-            dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
+                dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
+            }
         }
 
         let dict = {}
@@ -177,15 +181,26 @@ class NodeInfoComponent extends React.Component {
 
         let latencyIndex = 0
         let coverageIndex = 0
-        for (var key in preDict) {
-            let exists = dict[key]
+        if (this.props.interval != 0) {
+            for (var key in preDict) {
+                let exists = dict[key]
 
-            let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
-            latencyLabels[latencyIndex] = time
-            latencyPoints[latencyIndex++] = exists != undefined ? dict[key].latency : preDict[key].latency
+                let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
+                latencyLabels[latencyIndex] = time
+                latencyPoints[latencyIndex++] = exists != undefined ? dict[key].latency : preDict[key].latency
 
-            coverageLabels[coverageIndex] = time
-            coveragePoints[coverageIndex++] = exists != undefined ? dict[key].coverage : preDict[key].coverage
+                coverageLabels[coverageIndex] = time
+                coveragePoints[coverageIndex++] = exists != undefined ? dict[key].coverage : preDict[key].coverage
+            }
+        } else {
+            for (var key in dict) {
+                let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
+                latencyLabels[latencyIndex] = time
+                latencyPoints[latencyIndex++] = dict[key].latency
+
+                coverageLabels[coverageIndex] = time
+                coveragePoints[coverageIndex++] = dict[key].coverage
+            }
         }
 
         let length = latencyPoints.length
@@ -270,6 +285,7 @@ class NodeInfoComponent extends React.Component {
                     unit: 'day',
                     time: {
                         displayFormats: {
+                            second: 'HH:mm',
                             minute: 'HH:mm',
                             hour: 'HH:mm',
                             day: 'MMM D HH:mm',
@@ -337,7 +353,7 @@ class NodeInfoComponent extends React.Component {
                             <TimePicker
                                 floatingLabelText="From"
                                 minutesStep={this.props.interval}
-                                defaultTime={this.props.fromDate}
+                                value={this.props.fromDate}
                                 format="24hr"
                                 autoOk={true}
                                 onChange={this.handleFromHourMinuteChange}
@@ -353,7 +369,7 @@ class NodeInfoComponent extends React.Component {
                             <TimePicker
                                 floatingLabelText="To"
                                 minutesStep={this.props.interval}
-                                defaultTime={this.props.toDate}
+                                value={this.props.toDate}
                                 format="24hr"
                                 autoOk={true}
                                 onChange={this.handleToHourMinuteChange}
@@ -364,6 +380,7 @@ class NodeInfoComponent extends React.Component {
                                 value={this.props.interval}
                                 onChange={this.handleChange}
                             >
+                                {0 && (this.props.toDate.getTime() - this.props.fromDate.getTime()) < 3600000 && this.props.selectedNode && <MenuItem value={0} primaryText="Everything" />}
                                 <MenuItem value={5} primaryText="5 min" />
                                 <MenuItem value={10} primaryText="10 min" />
                                 <MenuItem value={30} primaryText="30 min" />

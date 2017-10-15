@@ -8,6 +8,7 @@ import {
   fetchNodeList,
   fetchOneNodeAverage,
   generateAverages,
+  generateAveragesOnIndex,
 } from '../api'
 
 export function typedAction(action: any): Action {
@@ -62,10 +63,12 @@ function* nodeQueryClicked(node: Node) {
   }
 }
 
-function* generateAveragesSaga() {
+function* generateAveragesSaga(id: String) {
   try {
-    const nodeInformation = yield call(generateAverages)
-    yield put({type: 'GENERATE_AVERAGES_SUCCEEDED', nodeInformation})
+    if(id == null) yield call(generateAverages)
+    else yield call(generateAveragesOnIndex, id)
+    
+    yield put({type: 'GENERATE_AVERAGES_SUCCEEDED'})
   } catch (e) {
     yield put({type: 'GENERATE_AVERAGES_FAILED', message: e.message})
   }
@@ -78,7 +81,7 @@ function* handleRequests(): Generator<*,*,*> {
       case 'NODES_FETCH_REQUESTED': yield fork(fetchNodes, action.fromDate, action.toDate, action.interval); break
       case 'NODE_FETCH_REQUESTED': yield fork(fetchNode, action.node, action.fromDate, action.toDate, action.interval); break
       case 'NODE_QUERY_CLICKED': yield fork(nodeQueryClicked, action.node); break
-      case 'GENERATE_AVERAGES': yield fork(generateAveragesSaga); break
+      case 'GENERATE_AVERAGES': yield fork(generateAveragesSaga, action.id); break
     }
   }
 }

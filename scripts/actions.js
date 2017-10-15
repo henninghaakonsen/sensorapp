@@ -9,6 +9,7 @@
 import type { Node, NodeInformation } from './types'
 
 export type Action =
+
     // Navigation actions
     { type: 'SET_TIMESPAN', fromDate: Date, toDate: Date }
     | { type: 'SET_INTERVAL', interval: Number }
@@ -17,11 +18,11 @@ export type Action =
     | { type: 'NODES_FETCH_FAILED', message: string }
     | { type: 'NODE_FETCH_REQUESTED', node: Node, fromDate: Date, toDate: Date, interval: Number }
     | { type: 'NODE_FETCH_SUCCEEDED', node: NodeInformation }
-    | { type: 'NODE_FETCH_FAILED', message: string}
-    [ { type: 'NODE_FETCH_AVERAGE_REQUESTED', node: Node, fromDate: Date, toDate: Date, interval: Number }
+    | { type: 'NODE_FETCH_FAILED', message: string }
+    | { type: 'NODE_FETCH_AVERAGE_REQUESTED', node: Node, fromDate: Date, toDate: Date, interval: Number }
     | { type: 'NODE_FETCH_AVERAGE_SUCEEDED', node: Node }
     | { type: 'NODE_FETCH_AVERAGE_FAILED', message: String }
     | { type: 'NODE_QUERY_CLICKED', node: Node}
     | { type: 'NODE_SELECTED', node: Node}
     | { type: 'SELECT_HOME' }
-    | { type: 'GENERATE_AVERAGES' };
+    | { type: 'GENERATE_AVERAGES', id: String }

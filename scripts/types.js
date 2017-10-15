@@ -21,4 +21,6 @@ export type NodeInformation = {
   timestamp: string,
   latency: number,
   coverage: number,
+  latencyDataPoints: number,
+  coverageDataPoints: number,
 }

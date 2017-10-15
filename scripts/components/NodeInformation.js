@@ -37,7 +37,7 @@ class NodeInfoComponent extends React.Component {
         fetchNode: (node: Node, fromDate: Date, toDate: Date, interval: Number) => void,
         setTimeSpan: (fromDate: Date, toDate: Date) => void,
         setInterval: (interval: Number) => void,
-        generateAverages: () => void,
+        generateAverages: (id: String) => void,
     };
 
     constructor(props: any) {
@@ -48,6 +48,7 @@ class NodeInfoComponent extends React.Component {
             autoOk: false,
             disableYearSelection: true,
             fetchGraphData: false,
+            messagingInterval: 5 // Every Xth second the nodes send a message to the server
         };
     }
 
@@ -82,14 +83,12 @@ class NodeInfoComponent extends React.Component {
     };
 
     refreshGraph = () => {
-        this.props.setTimeSpan(this.props.fromDate, new Date())
-
         !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
         this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
     }
 
     generateAverages = () => {
-        this.props.generateAverages()
+        this.props.generateAverages(this.props.selectedNode ? this.props.selectedNode.id : null)
     }
     handleFromHourMinuteChange = (event, date) => {
         this.props.setTimeSpan(date, this.props.toDate)
@@ -109,16 +108,20 @@ class NodeInfoComponent extends React.Component {
 
                 if (elem == undefined) {
                     elem = []
+                    elem.latencyCount = 1
+                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? 1 : 0
+
                     elem.timestamp = this.props.nodes[i].nodeInfo[j].timestamp
                     elem.latency = this.props.nodes[i].nodeInfo[j].latency
                     elem.coverage = this.props.nodes[i].nodeInfo[j].coverage
-                    elem.latencyCount = 1
-                    elem.coverageCount = 1
+                    elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints
                 } else {
                     elem.latencyCount = this.props.nodes[i].nodeInfo[j].latency != 0 ? elem.latencyCount + 1 : elem.latencyCount
                     elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? elem.coverageCount + 1 : elem.coverageCount
+
                     elem.latency = this.props.nodes[i].nodeInfo[j].latency != 0 ? this.props.nodes[i].nodeInfo[j].latency + elem.latency : elem.latency
                     elem.coverage = this.props.nodes[i].nodeInfo[j].coverage != -120 ? this.props.nodes[i].nodeInfo[j].coverage + elem.coverage : elem.coverage
+                    elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints != 0 ? this.props.nodes[i].nodeInfo[j].latencyDataPoints + elem.dataPoints : elem.dataPoints
                 }
                 newDict[key] = elem
             }
@@ -126,8 +129,9 @@ class NodeInfoComponent extends React.Component {
 
         for (var key in newDict) {
             let elem = newDict[key]
-            elem.latency = elem.latency / elem.latencyCount
-            elem.coverage = elem.coverage / elem.coverageCount
+            elem.latency = elem.latencyCount != 0 ? elem.latency / elem.latencyCount : 0
+            elem.coverage = elem.coverageCount != 0 ? elem.coverage / elem.coverageCount : -120
+            elem.dataPoints = elem.latencyCount != 0 ? elem.dataPoints / elem.latencyCount : 0
             newDict[key] = elem
         }
 
@@ -137,10 +141,11 @@ class NodeInfoComponent extends React.Component {
     handleSelectedNodeInfo(nodeInfo: NodeInformation[]): {} {
         let dict = {}
         for (let i = 0; i < nodeInfo.length; i++) {
-            let key = new Date(nodeInfo[i].timestamp).toISOString()
+            let key = nodeInfo[i].timestamp
             dict[key] = []
             dict[key].latency = nodeInfo[i].latency
             dict[key].coverage = nodeInfo[i].coverage
+            dict[key].dataPoints = nodeInfo[i].latencyDataPoints
         }
 
         return dict
@@ -153,6 +158,9 @@ class NodeInfoComponent extends React.Component {
         let coveragePoints = []
         let coverageLabels = []
 
+        let uptimePoints = []
+        let uptimeLabels = []
+
         var coeff = 1000 * 60 * this.props.interval
         let timeoffset = new Date().getTimezoneOffset()
         let dateIndexFrom = new Date(this.props.fromDate.getTime() - (timeoffset * 1000 * 60))
@@ -161,15 +169,15 @@ class NodeInfoComponent extends React.Component {
         let preDict = {}
         let tempToTime = this.props.toDate.getTime()
         tempToTime = tempToTime - (1000 * 60 * this.props.toDate.getTimezoneOffset())
-        if (this.props.interval != 0) {
-            while (dateIndexFrom.getTime() < tempToTime) {
-                const dateIndexString = dateIndexFrom.toISOString()
-                preDict[dateIndexString] = []
-                preDict[dateIndexString].latency = 0
-                preDict[dateIndexString].coverage = -120
+        while (dateIndexFrom.getTime() < tempToTime) {
+            const dateIndexString = dateIndexFrom.toISOString()
+            preDict[dateIndexString] = []
+            preDict[dateIndexString].latency = 0
+            preDict[dateIndexString].coverage = -120
+            preDict[dateIndexString].uptime = 0
 
-                dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
-            }
+
+            dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
         }
 
         let dict = {}
@@ -181,27 +189,31 @@ class NodeInfoComponent extends React.Component {
 
         let latencyIndex = 0
         let coverageIndex = 0
-        if (this.props.interval != 0) {
-            for (var key in preDict) {
-                let exists = dict[key]
+        let uptimeIndex = 0
+        for (var key in preDict) {
+            let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
 
-                let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
-                latencyLabels[latencyIndex] = time
-                latencyPoints[latencyIndex++] = exists != undefined ? dict[key].latency : preDict[key].latency
+            let exists = dict[time.toISOString()]
 
-                coverageLabels[coverageIndex] = time
-                coveragePoints[coverageIndex++] = exists != undefined ? dict[key].coverage : preDict[key].coverage
-            }
-        } else {
-            for (var key in dict) {
-                let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
-                latencyLabels[latencyIndex] = time
-                latencyPoints[latencyIndex++] = dict[key].latency
+            latencyLabels[latencyIndex] = time
+            latencyPoints[latencyIndex++] = exists != undefined ? dict[time.toISOString()].latency : preDict[key].latency
 
-                coverageLabels[coverageIndex] = time
-                coveragePoints[coverageIndex++] = dict[key].coverage
-            }
+            coverageLabels[coverageIndex] = time
+            coveragePoints[coverageIndex++] = exists != undefined ? dict[time.toISOString()].coverage : preDict[key].coverage
+
+            uptimeLabels[uptimeIndex] = time
+            uptimePoints[uptimeIndex++] = exists != undefined ? dict[time.toISOString()].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100 : preDict[key].uptime
         }
+        /*else {
+             for (var key in dict) {
+                 let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
+                 latencyLabels[latencyIndex] = time
+                 latencyPoints[latencyIndex++] = dict[key].latency
+ 
+                 coverageLabels[coverageIndex] = time
+                 coveragePoints[coverageIndex++] = dict[key].coverage
+             }
+         }*/
 
         let length = latencyPoints.length
         const latencyData = {
@@ -257,6 +269,35 @@ class NodeInfoComponent extends React.Component {
                     pointRadius: 1,
                     pointHitRadius: length > 500 ? 5 : 10,
                     data: coveragePoints,
+                    spanGaps: true,
+                },
+            ],
+        };
+
+        const uptimeData = {
+            labels: uptimeLabels,
+            datasets: [
+                {
+                    label: 'Uptime',
+                    type: 'line',
+                    fill: false,
+                    lineTension: 0.1,
+                    backgroundColor: colors.accentLighter,
+                    borderColor: colors.accentLight,
+                    borderCapStyle: 'butt',
+                    borderDash: [],
+                    borderDashOffset: 0.5,
+                    borderJoinStyle: 'miter',
+                    pointBorderColor: colors.accentLighter,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 1,
+                    pointHoverRadius: 4,
+                    pointHoverBackgroundColor: colors.accentLighter,
+                    pointHoverBorderColor: colors.accentLight,
+                    pointHoverBorderWidth: 2,
+                    pointRadius: 1,
+                    pointHitRadius: length > 500 ? 5 : 10,
+                    data: uptimePoints,
                     spanGaps: true,
                 },
             ],
@@ -325,6 +366,7 @@ class NodeInfoComponent extends React.Component {
                         width: '96%',
                         paddingLeft: '2%',
                     }}>
+                        <Line data={uptimeData} options={options} width={35} height={10} />
                         <Line data={latencyData} options={options} width={35} height={10} />
                         <Line data={coverageData} options={options} width={35} height={10} />
                     </div>
@@ -347,7 +389,7 @@ class NodeInfoComponent extends React.Component {
                                 onChange={this.handleChangefromDate}
                                 floatingLabelText="From"
                                 autoOk={this.state.autoOk}
-                                defaultDate={this.props.fromDate}
+                                value={this.props.fromDate}
                                 disableYearSelection={this.state.disableYearSelection}
                             />
                             <TimePicker
@@ -363,7 +405,7 @@ class NodeInfoComponent extends React.Component {
                                 onChange={this.handleChangetoDate}
                                 floatingLabelText="To"
                                 autoOk={this.state.autoOk}
-                                defaultDate={this.props.toDate}
+                                value={this.props.toDate}
                                 disableYearSelection={this.state.disableYearSelection}
                             />
                             <TimePicker
@@ -390,6 +432,29 @@ class NodeInfoComponent extends React.Component {
 
                     </Dialog>
                 </Tab>
+                {0 && <Tab label="RAW DATA" style={{ height: 50, backgroundColor: colors.accentLight }}>
+                    <Table
+                        multiSelectable={true}
+                    >
+                        <TableHeader adjustForCheckbox={true}>
+                            <TableRow>
+                                <TableHeaderColumn>TIMESTAMP</TableHeaderColumn>
+                                <TableHeaderColumn>LATENCY</TableHeaderColumn>
+                                <TableHeaderColumn>COVERAGE</TableHeaderColumn>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {Object.keys(dict).map((key, i) =>
+                                dict[key].latency != 0 &&
+                                <TableRow key={i} value={dict[key]}>
+                                    <TableRowColumn> {dict[key].timestamp} </TableRowColumn>
+                                    <TableRowColumn> {dict[key].latency} </TableRowColumn>
+                                    <TableRowColumn> {dict[key].coverage} </TableRowColumn>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </Tab>}
             </Tabs>
         )
     }
@@ -409,7 +474,7 @@ const Connected = connectClass(
         setInterval: (interval: Number) => dispatch({ type: 'SET_INTERVAL', interval }),
         fetchNodes: (fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, interval }),
         fetchNode: (node: Node, fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODE_FETCH_REQUESTED', node, fromDate, toDate, interval }),
-        generateAverages: () => dispatch({ type: 'GENERATE_AVERAGES' }),
+        generateAverages: (id: String) => dispatch({ type: 'GENERATE_AVERAGES', id }),
     }), NodeInfoComponent
 )
 

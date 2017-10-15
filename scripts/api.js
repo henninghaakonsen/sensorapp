@@ -7,8 +7,8 @@
 
 import type { Node, NodeInformation } from './types'
 
-//const apiServer = 'http://localhost:' + (process.env.PORT || 8020) + '/api'
-const apiServer = 'https://nb-iot-sensorserver.herokuapp.com/api'
+const apiServer = 'http://localhost:' + (process.env.PORT || 8020) + '/api'
+//const apiServer = 'https://nb-iot-sensorserver.herokuapp.com/api'
 
 const fetchNodesOptions = {
     method: 'GET',
@@ -73,6 +73,8 @@ export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String
             timestamp: node.timestamp,
             latency: node.latency,
             coverage: node.coverage,
+            latencyDataPoints: node.latencyDataPoints,
+            coverageDataPoints: node.coverageDataPoints,
         })));
 }
 
@@ -80,5 +82,10 @@ export function generateAverages(): Promise<String> {
     return fetch(`${apiServer}/generateAverage`, generateAveragesOptions)
         .then(rejectFetchFailures)
         .then(response => response.json())
-        .then(() => console.log(response))
+}
+
+export function generateAveragesOnIndex(id: String): Promise<String> {
+    return fetch(`${apiServer}/nodes/generateAverage/${id}`, generateAveragesOptions)
+        .then(rejectFetchFailures)
+        .then(response => response.json())
 }

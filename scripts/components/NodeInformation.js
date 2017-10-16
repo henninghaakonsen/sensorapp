@@ -72,7 +72,14 @@ class NodeInfoComponent extends React.Component {
         this.setState({ open: false, fetchGraphData: false });
     };
 
-    handleChange = (event, index, interval) => this.props.setInterval(interval);
+    handleChange = (event, index, interval) =>{
+        var coeff = 1000 * 60 * interval
+        const fromDate = new Date((Math.round(this.props.fromDate.getTime() / coeff) * coeff))
+        const toDate = new Date((Math.round(this.props.toDate.getTime() / coeff) * coeff))
+        this.props.setTimeSpan(fromDate, toDate)
+
+        this.props.setInterval(interval);
+    }
 
     handleChangefromDate = (event, date) => {
         this.props.setTimeSpan(date, this.props.toDate);
@@ -169,13 +176,12 @@ class NodeInfoComponent extends React.Component {
         let preDict = {}
         let tempToTime = this.props.toDate.getTime()
         tempToTime = tempToTime - (1000 * 60 * this.props.toDate.getTimezoneOffset())
-        while (dateIndexFrom.getTime() < tempToTime) {
+        while (dateIndexFrom.getTime() <= tempToTime) {
             const dateIndexString = dateIndexFrom.toISOString()
             preDict[dateIndexString] = []
             preDict[dateIndexString].latency = 0
             preDict[dateIndexString].coverage = -120
             preDict[dateIndexString].uptime = 0
-
 
             dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
         }
@@ -204,16 +210,6 @@ class NodeInfoComponent extends React.Component {
             uptimeLabels[uptimeIndex] = time
             uptimePoints[uptimeIndex++] = exists != undefined ? dict[time.toISOString()].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100 : preDict[key].uptime
         }
-        /*else {
-             for (var key in dict) {
-                 let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
-                 latencyLabels[latencyIndex] = time
-                 latencyPoints[latencyIndex++] = dict[key].latency
- 
-                 coverageLabels[coverageIndex] = time
-                 coveragePoints[coverageIndex++] = dict[key].coverage
-             }
-         }*/
 
         let length = latencyPoints.length
         const latencyData = {

@@ -28,7 +28,7 @@ class Navigation extends Component {
     super(props)
 
     var coeff = 1000 * 60 * this.props.interval
-    const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff))
+    const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
     const fromDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
     fromDate.setDate(fromDate.getDate() - 1)
 

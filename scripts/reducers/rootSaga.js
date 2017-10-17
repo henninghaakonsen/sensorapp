@@ -4,6 +4,8 @@ import { call, put, take, fork } from 'redux-saga/effects'
 import type { Action } from '../actions'
 import type { Node } from '../types'
 
+let moment = require('moment')
+
 import {
   fetchNodeList,
   fetchOneNodeAverage,
@@ -16,8 +18,8 @@ export function typedAction(action: any): Action {
 }
 
 function getISOStrings(fromDate: Date, toDate: Date) {
-  const fromDateISO = new Date(fromDate.getTime() + (fromDate.getTimezoneOffset() * 60000)).toISOString()
-  const toDateISO = new Date(toDate.getTime() - (toDate.getTimezoneOffset() * 60000)).toISOString()
+  const fromDateISO = moment.utc(fromDate.getTime()).format()
+  const toDateISO = moment.utc(toDate.getTime()).format()
 
   return [fromDateISO, toDateISO]
 }

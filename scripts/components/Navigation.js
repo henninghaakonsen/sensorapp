@@ -80,7 +80,7 @@ const NodeList = ({ busy, selectedId, onClick, nodes }: {
         <div style={{ marginTop: 4 }}>
           <Button color="#841584"
             onClick={() => onClick(null)}
-            text={'HOME'}
+            text={'AVERAGE'}
             selected={selectedId == null} />
         </div>
         {nodes.map(node =>

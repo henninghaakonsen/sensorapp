@@ -24,6 +24,8 @@ import MenuItem from 'material-ui/MenuItem';
 import TimePicker from 'material-ui/TimePicker';
 import { Line } from 'react-chartjs-2';
 
+const moment = require('moment')
+
 class NodeInfoComponent extends React.Component {
     props: {
         fetchingNodes: Boolean,
@@ -90,6 +92,10 @@ class NodeInfoComponent extends React.Component {
     };
 
     refreshGraph = () => {
+        var coeff = 1000 * 60 * this.props.interval
+        const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
+        this.props.setTimeSpan(this.props.fromDate, toDate);
+        
         !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
         this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
     }
@@ -196,19 +202,23 @@ class NodeInfoComponent extends React.Component {
         let latencyIndex = 0
         let coverageIndex = 0
         let uptimeIndex = 0
+        function round2(x)
+        {
+            return Math.ceil(x/2)*2;
+        }
+
         for (var key in preDict) {
             let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
-
-            let exists = dict[time.toISOString()]
+            let point = dict[time.toISOString().split('.')[0]+"Z"]
 
             latencyLabels[latencyIndex] = time
-            latencyPoints[latencyIndex++] = exists != undefined ? dict[time.toISOString()].latency : preDict[key].latency
+            latencyPoints[latencyIndex++] = point ? point.latency : preDict[key].latency
 
             coverageLabels[coverageIndex] = time
-            coveragePoints[coverageIndex++] = exists != undefined ? dict[time.toISOString()].coverage : preDict[key].coverage
+            coveragePoints[coverageIndex++] = point ? point.coverage : preDict[key].coverage
 
             uptimeLabels[uptimeIndex] = time
-            uptimePoints[uptimeIndex++] = exists != undefined ? dict[time.toISOString()].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100 : preDict[key].uptime
+            uptimePoints[uptimeIndex++] = point ? round2(point.dataPoints / ((this.props.interval * 60) / (this.state.messagingInterval + 0.5)) * 100) : preDict[key].uptime
         }
 
         let length = latencyPoints.length
@@ -351,7 +361,7 @@ class NodeInfoComponent extends React.Component {
                     }}>
                         <RaisedButton label="Edit" onClick={this.handleOpen} />
                         <RaisedButton label="Refresh" onClick={this.refreshGraph} />
-                        <RaisedButton label="Generate averages" onClick={this.generateAverages} />
+                        <RaisedButton label= {!this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]"} onClick={this.generateAverages} />
                     </div>
 
                     <div style={{

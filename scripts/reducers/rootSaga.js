@@ -16,7 +16,7 @@ export function typedAction(action: any): Action {
 }
 
 function getISOStrings(fromDate: Date, toDate: Date) {
-  const fromDateISO = new Date(fromDate.getTime() - (fromDate.getTimezoneOffset() * 60000)).toISOString()
+  const fromDateISO = new Date(fromDate.getTime() + (fromDate.getTimezoneOffset() * 60000)).toISOString()
   const toDateISO = new Date(toDate.getTime() - (toDate.getTimezoneOffset() * 60000)).toISOString()
 
   return [fromDateISO, toDateISO]

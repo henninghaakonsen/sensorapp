@@ -128,7 +128,7 @@ class NodeInfoComponent extends React.Component {
 
                     elem.latency = this.props.nodes[i].nodeInfo[j].latency != 0 ? this.props.nodes[i].nodeInfo[j].latency + elem.latency : elem.latency
                     elem.coverage = this.props.nodes[i].nodeInfo[j].coverage != -120 ? this.props.nodes[i].nodeInfo[j].coverage + elem.coverage : elem.coverage
-                    elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints != 0 ? this.props.nodes[i].nodeInfo[j].latencyDataPoints + elem.dataPoints : elem.dataPoints
+                    elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints + elem.dataPoints
                 }
                 newDict[key] = elem
             }

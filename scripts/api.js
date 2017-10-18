@@ -66,7 +66,7 @@ export function fetchOneNode(node: Node, fromDate: String, toDate: String, inter
 }
 
 export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String, interval: Number): Promise<NodeInformation[]> {
-    return fetch(`${apiServer}/nodes/${node.id}?interval=${interval}&fromDate=${fromDate}&toDate=${toDate}`, fetchNodeInformationOptions)
+    return fetch(`${apiServer}/nodes/${node.id}?interval=${interval}`, fetchNodeInformationOptions)
         .then(rejectFetchFailures)
         .then(response => response.json())
         .then(({ information }) => information.map(node => ({

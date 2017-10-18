@@ -22,7 +22,10 @@ import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 
 import TimePicker from 'material-ui/TimePicker';
-import { Line } from 'react-chartjs-2';
+
+import createPlotlyComponent from 'react-plotlyjs';
+import Plotly from 'plotly.js/dist/plotly-cartesian';
+const PlotlyComponent = createPlotlyComponent(Plotly);
 
 const moment = require('moment')
 
@@ -74,7 +77,7 @@ class NodeInfoComponent extends React.Component {
         this.setState({ open: false, fetchGraphData: false });
     };
 
-    handleChange = (event, index, interval) =>{
+    handleChange = (event, index, interval) => {
         var coeff = 1000 * 60 * interval
         const fromDate = new Date((Math.round(this.props.fromDate.getTime() / coeff) * coeff))
         const toDate = new Date((Math.round(this.props.toDate.getTime() / coeff) * coeff))
@@ -95,7 +98,7 @@ class NodeInfoComponent extends React.Component {
         var coeff = 1000 * 60 * this.props.interval
         const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
         this.props.setTimeSpan(this.props.fromDate, toDate);
-        
+
         !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
         this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
     }
@@ -144,7 +147,7 @@ class NodeInfoComponent extends React.Component {
             let elem = newDict[key]
             elem.latency = elem.latencyCount != 0 ? elem.latency / elem.latencyCount : 0
             elem.coverage = elem.coverageCount != 0 ? elem.coverage / elem.coverageCount : -120
-            elem.dataPoints = elem.latencyCount != 0 ? elem.dataPoints / elem.latencyCount : 0
+            elem.dataPoints = elem.dataPoints / this.props.nodes.length
             newDict[key] = elem
         }
 
@@ -174,24 +177,6 @@ class NodeInfoComponent extends React.Component {
         let uptimePoints = []
         let uptimeLabels = []
 
-        var coeff = 1000 * 60 * this.props.interval
-        let timeoffset = new Date().getTimezoneOffset()
-        let dateIndexFrom = new Date(this.props.fromDate.getTime() - (timeoffset * 1000 * 60))
-
-        let i = 0
-        let preDict = {}
-        let tempToTime = this.props.toDate.getTime()
-        tempToTime = tempToTime - (1000 * 60 * this.props.toDate.getTimezoneOffset())
-        while (dateIndexFrom.getTime() <= tempToTime) {
-            const dateIndexString = dateIndexFrom.toISOString()
-            preDict[dateIndexString] = []
-            preDict[dateIndexString].latency = 0
-            preDict[dateIndexString].coverage = -120
-            preDict[dateIndexString].uptime = 0
-
-            dateIndexFrom = new Date(dateIndexFrom.getTime() + coeff)
-        }
-
         let dict = {}
         if (this.props.selectedNodeInfo) {
             dict = this.handleSelectedNodeInfo(this.props.selectedNodeInfo)
@@ -202,111 +187,102 @@ class NodeInfoComponent extends React.Component {
         let latencyIndex = 0
         let coverageIndex = 0
         let uptimeIndex = 0
-        function round2(x)
-        {
-            return Math.ceil(x/2)*2;
+        function round2(x) {
+            return Math.ceil(x / 2) * 2;
         }
 
-        for (var key in preDict) {
-            let time = new Date(new Date(key).getTime() + (timeoffset * 1000 * 60))
-            let point = dict[time.toISOString().split('.')[0]+"Z"]
+        let timeoffset = new Date().getTimezoneOffset()
+        for (var key in dict) {
+            let time = new Date(new Date(key))
 
             latencyLabels[latencyIndex] = time
-            latencyPoints[latencyIndex++] = point ? point.latency : preDict[key].latency
+            latencyPoints[latencyIndex++] = dict[key].latency
 
             coverageLabels[coverageIndex] = time
-            coveragePoints[coverageIndex++] = point ? point.coverage : preDict[key].coverage
+            coveragePoints[coverageIndex++] = dict[key].coverage
 
             uptimeLabels[uptimeIndex] = time
-            uptimePoints[uptimeIndex++] = point ? round2(point.dataPoints / ((this.props.interval * 60) / (this.state.messagingInterval + 0.5)) * 100) : preDict[key].uptime
+            uptimePoints[uptimeIndex++] = round2(dict[key].dataPoints / ((this.props.interval * 60) / (this.state.messagingInterval + 0.3)) * 100)
         }
 
-        let length = latencyPoints.length
-        const latencyData = {
-            labels: latencyLabels,
-            datasets: [
-                {
-                    label: 'Latency',
-                    type: 'line',
-                    fill: false,
-                    lineTension: 0.1,
-                    backgroundColor: colors.accentLighter,
-                    borderColor: colors.accentLight,
-                    borderCapStyle: 'butt',
-                    borderDash: [],
-                    borderDashOffset: 0.5,
-                    borderJoinStyle: 'miter',
-                    pointBorderColor: colors.accentLighter,
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 1,
-                    pointHoverRadius: 4,
-                    pointHoverBackgroundColor: colors.accentLighter,
-                    pointHoverBorderColor: colors.accentLight,
-                    pointHoverBorderWidth: 2,
-                    pointRadius: 1,
-                    pointHitRadius: length > 500 ? 5 : 10,
-                    data: latencyPoints,
-                    spanGaps: true,
-                },
-            ],
+        const uptime = {
+            type: "scatter",
+            mode: "lines",
+            name: 'Uptime',
+            x: uptimeLabels,
+            y: uptimePoints,
+            line: { 
+                color: colors.accentLighter,
+                width: 3
+            }
         }
 
-        const coverageData = {
-            labels: coverageLabels,
-            datasets: [
-                {
-                    label: 'Coverage',
-                    type: 'line',
-                    fill: false,
-                    lineTension: 0.1,
-                    backgroundColor: colors.accentLighter,
-                    borderColor: colors.accentLight,
-                    borderCapStyle: 'butt',
-                    borderDash: [],
-                    borderDashOffset: 0.5,
-                    borderJoinStyle: 'miter',
-                    pointBorderColor: colors.accentLighter,
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 1,
-                    pointHoverRadius: 4,
-                    pointHoverBackgroundColor: colors.accentLighter,
-                    pointHoverBorderColor: colors.accentLight,
-                    pointHoverBorderWidth: 2,
-                    pointRadius: 1,
-                    pointHitRadius: length > 500 ? 5 : 10,
-                    data: coveragePoints,
-                    spanGaps: true,
-                },
-            ],
+        const latency = {
+            type: "scatter",
+            mode: "lines",
+            name: 'Latency',
+            x: latencyLabels,
+            y: latencyPoints,
+            line: { 
+                color: colors.accentLighter,
+                width: 3
+            }
+        }
+
+        const coverage = {
+            type: "scatter",
+            mode: "lines",
+            name: 'Coverage',
+            x: coverageLabels,
+            y: coveragePoints,
+            line: { 
+                color: colors.accentLighter,
+                width: 3
+            }
+        }
+
+        const uptimeData = [uptime];
+        const latencyData = [latency];
+        const coverageData = [coverage];
+
+        const uptimeLayout = {
+            title: 'UPTIME',
+            dragmode: 'pan',
+            height: 600,
+            xaxis: {
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
+            },
+            yaxis: {
+                range: [-5, 105]
+            }
         };
 
-        const uptimeData = {
-            labels: uptimeLabels,
-            datasets: [
-                {
-                    label: 'Uptime',
-                    type: 'line',
-                    fill: false,
-                    lineTension: 0.1,
-                    backgroundColor: colors.accentLighter,
-                    borderColor: colors.accentLight,
-                    borderCapStyle: 'butt',
-                    borderDash: [],
-                    borderDashOffset: 0.5,
-                    borderJoinStyle: 'miter',
-                    pointBorderColor: colors.accentLighter,
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 1,
-                    pointHoverRadius: 4,
-                    pointHoverBackgroundColor: colors.accentLighter,
-                    pointHoverBorderColor: colors.accentLight,
-                    pointHoverBorderWidth: 2,
-                    pointRadius: 1,
-                    pointHitRadius: length > 500 ? 5 : 10,
-                    data: uptimePoints,
-                    spanGaps: true,
-                },
-            ],
+        const latencyLayout = {
+            title: 'LATENCY',
+            dragmode: 'pan',
+            height: 600,
+            xaxis: {
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
+            }
+        };
+
+        const coverageLayout = {
+            title: 'COVERAGE',
+            dragmode: 'pan',
+            height: 600,
+            xaxis: {
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
+            },
+            yaxis: {
+                range: [-120, -40],
+            },
+            modeBarButtons: []            
+        };
+
+        const config = {
+            showLink: false,
+            displayModeBar: true,
+            displaylogo: false
         };
 
         const actions = [
@@ -317,31 +293,6 @@ class NodeInfoComponent extends React.Component {
                 onClick={this.handleClose}
             />,
         ];
-
-        const options = {
-            animation: {
-                duration: length > 500 ? 0 : 500, // general animation time - switch to non animation when passing 500 points. With 5 min interval this is ~2 days.
-            },
-            hover: {
-                animationDuration: 0, // duration of animations when hovering an item
-            },
-            responsiveAnimationDuration: 0, // animation duration after a resize
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    unit: 'day',
-                    time: {
-                        displayFormats: {
-                            second: 'HH:mm',
-                            minute: 'HH:mm',
-                            hour: 'HH:mm',
-                            day: 'MMM D HH:mm',
-                        }
-                    },
-                    distribution: 'series' //linear
-                }]
-            }
-        }
 
         const selectorFieldStyles = {
             customWidth: {
@@ -361,7 +312,7 @@ class NodeInfoComponent extends React.Component {
                     }}>
                         <RaisedButton label="Edit" onClick={this.handleOpen} />
                         <RaisedButton label="Refresh" onClick={this.refreshGraph} />
-                        <RaisedButton label= {!this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]"} onClick={this.generateAverages} />
+                        <RaisedButton label={!this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]"} onClick={this.generateAverages} />
                     </div>
 
                     <div style={{
@@ -369,12 +320,13 @@ class NodeInfoComponent extends React.Component {
                         flexDirection: 'column',
                         justifyContent: 'space-around',
                         height: '100%',
-                        width: '96%',
-                        paddingLeft: '2%',
+                        width: '98%',
+                        paddingLeft: '1%',
+                        paddingTop: '1%',
                     }}>
-                        <Line data={uptimeData} options={options} width={35} height={10} />
-                        <Line data={latencyData} options={options} width={35} height={10} />
-                        <Line data={coverageData} options={options} width={35} height={10} />
+                        <PlotlyComponent className="uptime" data={uptimeData} layout={uptimeLayout} config={config} />
+                        <PlotlyComponent className="latency" data={latencyData} layout={latencyLayout} config={config} />
+                        <PlotlyComponent className="coverage" data={coverageData} layout={coverageLayout} config={config} />
                     </div>
 
                     <Dialog

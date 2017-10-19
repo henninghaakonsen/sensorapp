@@ -212,6 +212,7 @@ class NodeInfoComponent extends React.Component {
             x: uptimeLabels,
             y: uptimePoints,
             line: { 
+                shape: 'spline',
                 color: colors.accentLighter,
                 width: 3
             }
@@ -224,6 +225,7 @@ class NodeInfoComponent extends React.Component {
             x: latencyLabels,
             y: latencyPoints,
             line: { 
+                shape: 'spline',
                 color: colors.accentLighter,
                 width: 3
             }
@@ -236,6 +238,7 @@ class NodeInfoComponent extends React.Component {
             x: coverageLabels,
             y: coveragePoints,
             line: { 
+                shape: 'spline',
                 color: colors.accentLighter,
                 width: 3
             }
@@ -263,7 +266,10 @@ class NodeInfoComponent extends React.Component {
             height: 600,
             xaxis: {
                 range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
-            }
+            },
+            yaxis: {
+                range: [-5, 20],
+            },
         };
 
         const coverageLayout = {
@@ -274,7 +280,7 @@ class NodeInfoComponent extends React.Component {
                 range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
             },
             yaxis: {
-                range: [-120, -40],
+                range: [-125, -35],
             },
             modeBarButtons: []            
         };

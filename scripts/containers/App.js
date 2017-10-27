@@ -6,7 +6,6 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Header from '../components/Header'
 import Navigation from '../components/Navigation'
 import NodeInfoComponent from '../components/NodeInformation'
-import NodesInfoComponent from '../components/NodesInformation'
 import Search from '../components/Search'
 import theme from '../styles'
 

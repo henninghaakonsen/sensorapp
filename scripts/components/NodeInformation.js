@@ -24,7 +24,7 @@ import MenuItem from 'material-ui/MenuItem';
 import TimePicker from 'material-ui/TimePicker';
 
 import createPlotlyComponent from 'react-plotlyjs';
-import Plotly from 'plotly.js/dist/plotly-cartesian';
+import Plotly from 'plotly.js/dist/plotly-basic.js';
 const PlotlyComponent = createPlotlyComponent(Plotly);
 
 const moment = require('moment')
@@ -58,15 +58,12 @@ class NodeInfoComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.fromDate != this.props.fromDate || nextProps.toDate != this.props.toDate || nextProps.interval != this.props.interval) {
-            this.props.setTimeSpan(nextProps.fromDate, nextProps.toDate)
+        if (nextProps.interval != this.props.interval) {
             this.setState({ fetchGraphData: true });
         }
     }
 
-    handleOpen = () => {
-        this.setState({ open: true });
-    };
+    handleOpen = () => this.setState({ open: true })
 
     handleClose = () => {
         if (this.state.fetchGraphData) {
@@ -75,7 +72,7 @@ class NodeInfoComponent extends React.Component {
         }
 
         this.setState({ open: false, fetchGraphData: false });
-    };
+    }
 
     handleChange = (event, index, interval) => {
         var coeff = 1000 * 60 * interval
@@ -167,6 +164,39 @@ class NodeInfoComponent extends React.Component {
         return dict
     }
 
+    plotlyRelayout = (event) => {
+        this.props.setTimeSpan(new Date(event['xaxis.range[0]']), new Date(event['xaxis.range[1]']))
+    }
+
+    getLayout = (title, yaxisFrom, yaxisTo) => {
+        return {
+            title: title,
+            dragmode: 'pan',
+            height: 600,
+            xaxis: {
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
+            },
+            yaxis: {
+                range: [yaxisFrom, yaxisTo],
+            }
+        }
+    }
+
+    getData = (name, labels, points) => {
+        return {
+            type: "scatter",
+            mode: "lines",
+            name: name,
+            x: labels,
+            y: points,
+            line: {
+                shape: 'spline',
+                color: colors.accentLighter,
+                width: 3
+            }
+        }
+    }
+
     render() {
         let latencyPoints = []
         let latencyLabels = []
@@ -205,85 +235,17 @@ class NodeInfoComponent extends React.Component {
             uptimePoints[uptimeIndex++] = round2(dict[key].dataPoints / ((this.props.interval * 60) / (this.state.messagingInterval + 0.3)) * 100)
         }
 
-        const uptime = {
-            type: "scatter",
-            mode: "lines",
-            name: 'Uptime',
-            x: uptimeLabels,
-            y: uptimePoints,
-            line: { 
-                shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
-            }
-        }
-
-        const latency = {
-            type: "scatter",
-            mode: "lines",
-            name: 'Latency',
-            x: latencyLabels,
-            y: latencyPoints,
-            line: { 
-                shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
-            }
-        }
-
-        const coverage = {
-            type: "scatter",
-            mode: "lines",
-            name: 'Coverage',
-            x: coverageLabels,
-            y: coveragePoints,
-            line: { 
-                shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
-            }
-        }
+        const uptime = this.getData('Uptime', uptimeLabels, uptimePoints)
+        const latency = this.getData('Latency', latencyLabels, latencyPoints)
+        const coverage = this.getData('Coverage', coverageLabels, coveragePoints)
 
         const uptimeData = [uptime];
         const latencyData = [latency];
         const coverageData = [coverage];
 
-        const uptimeLayout = {
-            title: 'UPTIME',
-            dragmode: 'pan',
-            height: 600,
-            xaxis: {
-                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
-            },
-            yaxis: {
-                range: [-5, 105]
-            }
-        };
-
-        const latencyLayout = {
-            title: 'LATENCY',
-            dragmode: 'pan',
-            height: 600,
-            xaxis: {
-                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
-            },
-            yaxis: {
-                range: [-5, 20],
-            },
-        };
-
-        const coverageLayout = {
-            title: 'COVERAGE',
-            dragmode: 'pan',
-            height: 600,
-            xaxis: {
-                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
-            },
-            yaxis: {
-                range: [-125, -35],
-            },
-            modeBarButtons: []            
-        };
+        const uptimeLayout = this.getLayout('UPTIME', -5, 105)
+        const latencyLayout = this.getLayout('LATENCY', -5, 20)
+        const coverageLayout = this.getLayout('COVERAGE', -125, -35)
 
         const config = {
             showLink: false,
@@ -330,9 +292,9 @@ class NodeInfoComponent extends React.Component {
                         paddingLeft: '1%',
                         paddingTop: '1%',
                     }}>
-                        <PlotlyComponent className="uptime" data={uptimeData} layout={uptimeLayout} config={config} />
-                        <PlotlyComponent className="latency" data={latencyData} layout={latencyLayout} config={config} />
-                        <PlotlyComponent className="coverage" data={coverageData} layout={coverageLayout} config={config} />
+                        <PlotlyComponent className="uptime" data={uptimeData} layout={uptimeLayout} config={config} onRelayout={this.plotlyRelayout} />
+                        <PlotlyComponent className="latency" data={latencyData} layout={latencyLayout} config={config} onRelayout={this.plotlyRelayout} />
+                        <PlotlyComponent className="coverage" data={coverageData} layout={coverageLayout} config={config} onRelayout={this.plotlyRelayout} />
                     </div>
 
                     <Dialog
@@ -356,14 +318,6 @@ class NodeInfoComponent extends React.Component {
                                 value={this.props.fromDate}
                                 disableYearSelection={this.state.disableYearSelection}
                             />
-                            <TimePicker
-                                floatingLabelText="From"
-                                minutesStep={this.props.interval}
-                                value={this.props.fromDate}
-                                format="24hr"
-                                autoOk={true}
-                                onChange={this.handleFromHourMinuteChange}
-                            />
 
                             <DatePicker
                                 onChange={this.handleChangetoDate}
@@ -371,14 +325,6 @@ class NodeInfoComponent extends React.Component {
                                 autoOk={this.state.autoOk}
                                 value={this.props.toDate}
                                 disableYearSelection={this.state.disableYearSelection}
-                            />
-                            <TimePicker
-                                floatingLabelText="To"
-                                minutesStep={this.props.interval}
-                                value={this.props.toDate}
-                                format="24hr"
-                                autoOk={true}
-                                onChange={this.handleToHourMinuteChange}
                             />
 
                             <SelectField

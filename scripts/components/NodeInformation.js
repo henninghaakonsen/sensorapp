@@ -78,7 +78,7 @@ class NodeInfoComponent extends React.Component {
                 }
             })
             
-            const toDate = new Date(new Date(latestDate).getTime() - coeff)
+            const toDate = new Date(new Date(latestDate).getTime() + coeff)
             const fromDate = new Date(new Date(latestDate).getTime())
             fromDate.setDate(fromDate.getDate() - 1)
 

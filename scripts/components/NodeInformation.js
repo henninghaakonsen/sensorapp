@@ -61,6 +61,29 @@ class NodeInfoComponent extends React.Component {
         if (nextProps.interval != this.props.interval) {
             this.setState({ fetchGraphData: true });
         }
+
+        if (nextProps.fetchingNodes == false && this.props.fetchingNodes == true) {
+            var coeff = 1000 * 60 * this.props.interval
+            let lengths = nextProps.nodes.map(node => {
+                return node.nodeInfo.length
+            })
+
+            let latestDate = 0
+            lengths.map((length, i) => {
+                let timestamp = new Date(nextProps.nodes[i].nodeInfo[length-1]['timestamp'])
+                if (latestDate == 0) {
+                    latestDate = timestamp
+                } else if (timestamp.getTime() > latestDate.getTime()) {
+                    latestDate = timestamp
+                }
+            })
+            
+            const toDate = new Date(new Date(latestDate).getTime() - coeff)
+            const fromDate = new Date(new Date(latestDate).getTime())
+            fromDate.setDate(fromDate.getDate() - 1)
+
+            this.props.setTimeSpan(fromDate, toDate)
+        }
     }
 
     handleOpen = () => this.setState({ open: true })
@@ -175,9 +198,6 @@ class NodeInfoComponent extends React.Component {
             height: 600,
             xaxis: {
                 range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
-            },
-            yaxis: {
-                range: [yaxisFrom, yaxisTo],
             }
         }
     }
@@ -232,7 +252,7 @@ class NodeInfoComponent extends React.Component {
             coveragePoints[coverageIndex++] = dict[key].coverage
 
             uptimeLabels[uptimeIndex] = time
-            uptimePoints[uptimeIndex++] = round2(dict[key].dataPoints / ((this.props.interval * 60) / (this.state.messagingInterval + 0.3)) * 100)
+            uptimePoints[uptimeIndex++] = round2(dict[key].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100)
         }
 
         const uptime = this.getData('Uptime', uptimeLabels, uptimePoints)
@@ -244,7 +264,7 @@ class NodeInfoComponent extends React.Component {
         const coverageData = [coverage];
 
         const uptimeLayout = this.getLayout('UPTIME', -5, 105)
-        const latencyLayout = this.getLayout('LATENCY', -5, 20)
+        const latencyLayout = this.getLayout('LATENCY', 0, 0)
         const coverageLayout = this.getLayout('COVERAGE', -125, -35)
 
         const config = {

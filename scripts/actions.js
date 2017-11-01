@@ -22,7 +22,7 @@ export type Action =
     | { type: 'NODE_FETCH_AVERAGE_REQUESTED', node: Node, fromDate: Date, toDate: Date, interval: Number }
     | { type: 'NODE_FETCH_AVERAGE_SUCEEDED', node: Node }
     | { type: 'NODE_FETCH_AVERAGE_FAILED', message: String }
-    | { type: 'NODE_QUERY_CLICKED', node: Node}
-    | { type: 'NODE_SELECTED', node: Node}
+    | { type: 'NODE_QUERY_CLICKED', node: Node }
+    | { type: 'NODE_SELECTED', node: Node }
     | { type: 'SELECT_HOME' }
     | { type: 'GENERATE_AVERAGES', id: String }

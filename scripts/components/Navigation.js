@@ -27,9 +27,8 @@ class Navigation extends Component {
   constructor(props) {
     super(props)
 
-    var coeff = 1000 * 60 * this.props.interval
-    const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
-    const fromDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
+    const toDate = new Date()
+    const fromDate = new Date()
     fromDate.setDate(fromDate.getDate() - 1)
 
     this.props.setTimeSpan(fromDate, toDate)
@@ -83,14 +82,16 @@ const NodeList = ({ busy, selectedId, onClick, nodes }: {
             text={'AVERAGE'}
             selected={selectedId == null} />
         </div>
-        {nodes.map(node =>
+        {nodes.sort(function (a, b) {
+          return a.id.localeCompare(b.id)
+        }).map(node =>
           <NodeUnit
             key={node.id}
             onClick={() => onClick(node)}
             selected={selectedId ? (node.id == selectedId) : false}
             node={node}
           />
-        )}
+          )}
       </div>
     </div>
   )

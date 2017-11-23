@@ -166,8 +166,8 @@ class NodeInfoComponent extends React.Component {
 
         for (var key in newDict) {
             let elem = newDict[key]
-            elem.latency = elem.latencyCount != 0 ? elem.latency / elem.latencyCount : 0
-            elem.coverage = elem.coverageCount != 0 ? elem.coverage / elem.coverageCount : -120
+            elem.latency = elem.latency / elem.latencyCount
+            elem.coverage = elem.coverage / elem.coverageCount
             elem.dataPoints = elem.dataPoints / this.props.nodes.length
             newDict[key] = elem
         }
@@ -211,6 +211,7 @@ class NodeInfoComponent extends React.Component {
             name: name,
             x: labels,
             y: points,
+            connectNullData: false,
             line: {
                 shape: 'spline',
                 color: colors.accentLighter,
@@ -248,14 +249,16 @@ class NodeInfoComponent extends React.Component {
             let time = new Date(new Date(key))
 
             latencyLabels[latencyIndex] = time
-            latencyPoints[latencyIndex++] = dict[key].latency
+            latencyPoints[latencyIndex++] = dict[key].latency != 0 ? dict[key].latency : null
 
             coverageLabels[coverageIndex] = time
-            coveragePoints[coverageIndex++] = dict[key].coverage
+            coveragePoints[coverageIndex++] = dict[key].coverage != -120 ? dict[key].coverage : null
 
             uptimeLabels[uptimeIndex] = time
-            uptimePoints[uptimeIndex++] = round2(dict[key].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100)
+            uptimePoints[uptimeIndex++] = dict[key].dataPoints != 0 ? round2(dict[key].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100) : null
         }
+
+        console.log(latencyPoints)
 
         const uptime = this.getData('Uptime', uptimeLabels, uptimePoints)
         let latency = {
@@ -264,20 +267,20 @@ class NodeInfoComponent extends React.Component {
             name: "Latency",
             x: latencyLabels,
             y: latencyPoints,
+            connectNullData: false,
             line: {
                 shape: 'spline',
                 color: colors.accentLighter,
                 width: 3
             }
         }
-        //const coverage = this.getData('Coverage', coverageLabels, coveragePoints)
-
         let coverage = {
             type: "scatter",
             mode: "lines",
             name: "Coverage",
             x: coverageLabels,
             y: coveragePoints,
+            connectNullData: false,
             yaxis: "y2",
             line: {
                 shape: 'spline',

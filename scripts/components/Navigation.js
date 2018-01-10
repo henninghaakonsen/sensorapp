@@ -76,12 +76,6 @@ const NodeList = ({ busy, selectedId, onClick, nodes }: {
       <div style={{
         overflow: 'scroll',
       }}>
-        <div style={{ marginTop: 4 }}>
-          <Button color="#841584"
-            onClick={() => onClick(null)}
-            text={'AVERAGE'}
-            selected={selectedId == null} />
-        </div>
         {nodes.sort(function (a, b) {
           return a.id.localeCompare(b.id)
         }).map(node =>

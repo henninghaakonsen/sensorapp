@@ -59,10 +59,8 @@ export function fetchOneNode(node: Node, fromDate: String, toDate: String, inter
         .then(rejectFetchFailures)
         .then(response => response.json())
         .then(({ information }) => information.map(node => ({
-            type: node.type,
             timestamp: node.timestamp,
-            latency: node.latency,
-            coverage: node.coverage,
+            temperature: node.temperature,
         })));
 }
 
@@ -72,10 +70,8 @@ export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String
         .then(response => response.json())
         .then(({ information }) => information.map(node => ({
             timestamp: node.timestamp,
-            latency: node.latency,
-            coverage: node.coverage,
-            latencyDataPoints: node.latencyDataPoints,
-            coverageDataPoints: node.coverageDataPoints,
+            temperature: node.temperature,
+            temperatureDataPoints: node.temperatureDataPoints,
         })));
 }
 

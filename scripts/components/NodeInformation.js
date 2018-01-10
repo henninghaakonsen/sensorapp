@@ -54,7 +54,6 @@ class NodeInfoComponent extends React.Component {
             autoOk: false,
             disableYearSelection: true,
             fetchGraphData: false,
-            messagingInterval: 5, // Every Xth second the nodes send a message to the server
         };
     }
 
@@ -135,62 +134,26 @@ class NodeInfoComponent extends React.Component {
         this.props.setTimeSpan(this.props.fromDate, date)
     };
 
-    makeAverageDict(): {} {
-        let newDict = {}
-
-        for (let i = 0; i < this.props.nodes.length; i++) {
-            for (let j = 0; j < Object.keys(this.props.nodes[i].nodeInfo).length; j++) {
-                let key = this.props.nodes[i].nodeInfo[j].timestamp
-                let elem = newDict[key]
-
-                if (elem == undefined) {
-                    elem = []
-                    elem.latencyCount = 1
-                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? 1 : 0
-
-                    elem.timestamp = this.props.nodes[i].nodeInfo[j].timestamp
-                    elem.latency = this.props.nodes[i].nodeInfo[j].latency
-                    elem.coverage = this.props.nodes[i].nodeInfo[j].coverage
-                    elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints
-                } else {
-                    elem.latencyCount = this.props.nodes[i].nodeInfo[j].latency != 0 ? elem.latencyCount + 1 : elem.latencyCount
-                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? elem.coverageCount + 1 : elem.coverageCount
-
-                    elem.latency = this.props.nodes[i].nodeInfo[j].latency != 0 ? this.props.nodes[i].nodeInfo[j].latency + elem.latency : elem.latency
-                    elem.coverage = this.props.nodes[i].nodeInfo[j].coverage != -120 ? this.props.nodes[i].nodeInfo[j].coverage + elem.coverage : elem.coverage
-                    elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints + elem.dataPoints
-                }
-                newDict[key] = elem
-            }
-        }
-
-        for (var key in newDict) {
-            let elem = newDict[key]
-            elem.latency = elem.latency / elem.latencyCount
-            elem.coverage = elem.coverage / elem.coverageCount
-            elem.dataPoints = elem.dataPoints / this.props.nodes.length
-            newDict[key] = elem
-        }
-
-        return newDict
-    }
-
     handleSelectedNodeInfo(nodeInfo: NodeInformation[]): {} {
         let dict = {}
         for (let i = 0; i < nodeInfo.length; i++) {
             let key = nodeInfo[i].timestamp
             dict[key] = []
-            dict[key].latency = nodeInfo[i].latency
-            dict[key].coverage = nodeInfo[i].coverage
-            dict[key].dataPoints = nodeInfo[i].latencyDataPoints
+            dict[key].timestamp = nodeInfo[i].timestamp
+            dict[key].temperature = nodeInfo[i].temperature
         }
 
         return dict
     }
 
-    plotlyRelayout = (event) => {
-        console.log(event)
-        this.props.setTimeSpan(new Date(event['xaxis.range[0]']), new Date(event['xaxis.range[1]']))
+    handleAllNodes(): {} {
+        let newDict = {}
+
+        for (let i = 0; i < this.props.nodes.length; i++) {
+            newDict[this.props.nodes[i].displayName] = this.handleSelectedNodeInfo(this.props.nodes[i].nodeInfo)
+        }
+
+        return newDict
     }
 
     getLayout = (title, yaxisFrom, yaxisTo) => {
@@ -200,6 +163,9 @@ class NodeInfoComponent extends React.Component {
             dragmode: 'pan',
             xaxis: {
                 range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
+            },
+            yaxis: {
+                range: [yaxisFrom, yaxisTo]
             },
         }
     }
@@ -220,97 +186,38 @@ class NodeInfoComponent extends React.Component {
         }
     }
 
+    handleNodeData = (nodeData) => {
+        let points = []
+        let labels = []
+
+        let temperatureIndex = 0
+        for (var key in nodeData) {
+            let time = new Date(key)
+
+            labels[temperatureIndex] = time
+            points[temperatureIndex++] = nodeData[key].temperature != 0 ? nodeData[key].temperature : null
+        }
+
+        return [points, labels];
+    }
+
     render() {
-        let latencyPoints = []
-        let latencyLabels = []
-
-        let coveragePoints = []
-        let coverageLabels = []
-
-        let uptimePoints = []
-        let uptimeLabels = []
+        let data = []
+        let temperaturePoints = []
+        let temperatureLabels = []
 
         let dict = {}
         if (this.props.selectedNodeInfo) {
             dict = this.handleSelectedNodeInfo(this.props.selectedNodeInfo)
-        } else if (this.props.nodes.length != 0) {
-            dict = this.makeAverageDict()
+            data = this.handleNodeData(dict)
         }
 
-        let latencyIndex = 0
-        let coverageIndex = 0
-        let uptimeIndex = 0
-        function round2(x) {
-            return Math.ceil(x / 2) * 2;
-        }
+        temperaturePoints = data[0]
+        temperatureLabels = data[1]
 
-        let timeoffset = new Date().getTimezoneOffset()
-        for (var key in dict) {
-            let time = new Date(new Date(key))
+        const temperature = this.getData('Temperature', temperatureLabels, temperaturePoints);
 
-            latencyLabels[latencyIndex] = time
-            latencyPoints[latencyIndex++] = dict[key].latency != 0 ? dict[key].latency : null
-
-            coverageLabels[coverageIndex] = time
-            coveragePoints[coverageIndex++] = dict[key].coverage != -120 ? dict[key].coverage : null
-
-            uptimeLabels[uptimeIndex] = time
-            uptimePoints[uptimeIndex++] = dict[key].dataPoints != 0 ? round2(dict[key].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100) : null
-        }
-
-        console.log(latencyPoints)
-
-        const uptime = this.getData('Uptime', uptimeLabels, uptimePoints)
-        let latency = {
-            type: "scatter",
-            mode: "lines",
-            name: "Latency",
-            x: latencyLabels,
-            y: latencyPoints,
-            connectNullData: false,
-            line: {
-                shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
-            }
-        }
-        let coverage = {
-            type: "scatter",
-            mode: "lines",
-            name: "Coverage",
-            x: coverageLabels,
-            y: coveragePoints,
-            connectNullData: false,
-            yaxis: "y2",
-            line: {
-                shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
-            }
-        }
-
-        const uptimeLayout = this.getLayout('UPTIME', -5, 105)
-        const latencyAndCoverageLayout = {
-            title: "Latency & Coverage",
-            height: 600,
-            dragmode: 'pan',
-            xaxis: {
-                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
-            },
-            yaxis: {
-                title: "Latency",
-                range: [-0.5, 20]
-            },
-            yaxis2: {
-                title: 'Coverage',
-                range: [-40, -121],
-                anchor: 'free',
-                side: 'right',
-                overlaying: "y",
-                position: 1
-            }
-        }
-
+        const temperatureLayout = this.getLayout('TEMPERATURE', -20, 30);
         const config = {
             showLink: false,
             displayModeBar: true,
@@ -335,75 +242,74 @@ class NodeInfoComponent extends React.Component {
         return (
             <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
                 <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
-                        justifyContent: 'flex-start',
-                        width: '100%',
-                    }}>
-                        <RaisedButton label="Edit" onClick={this.handleOpen} />
-                        <RaisedButton label="Refresh" onClick={this.refreshGraph} />
-                        <RaisedButton label={!this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]"} onClick={this.generateAverages} />
-                    </div>
-
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-around',
-                        height: '100%',
-                        width: '98%',
-                        paddingLeft: '1%',
-                        paddingTop: '1%',
-                    }}>
-                        <PlotlyComponent className="uptime" data={[uptime]} layout={uptimeLayout} config={config} onRelayout={this.plotlyRelayout} />
-                        <PlotlyComponent className="latencyAndCoverage" data={[latency, coverage]} layout={latencyAndCoverageLayout} config={config} onRelayout={this.plotlyRelayout} />
-                    </div>
-
-                    <Dialog
-                        title="Configure graphs"
-                        actions={actions}
-                        modal={false}
-                        open={this.state.open}
-                        onRequestClose={this.handleClose}
-                    >
+                    {this.props.selectedNode && <div>
                         <div style={{
                             display: 'flex',
                             flexDirection: 'row',
                             flexWrap: 'wrap',
-                            justifyContent: 'space-evenly',
-                            height: '100%',
+                            justifyContent: 'flex-start',
+                            width: '100%',
                         }}>
-                            <DatePicker
-                                onChange={this.handleChangefromDate}
-                                floatingLabelText="From"
-                                autoOk={this.state.autoOk}
-                                value={this.props.fromDate}
-                                disableYearSelection={this.state.disableYearSelection}
-                            />
-
-                            <DatePicker
-                                onChange={this.handleChangetoDate}
-                                floatingLabelText="To"
-                                autoOk={this.state.autoOk}
-                                value={this.props.toDate}
-                                disableYearSelection={this.state.disableYearSelection}
-                            />
-
-                            <SelectField
-                                floatingLabelText="Frequency"
-                                value={this.props.interval}
-                                onChange={this.handleChange}
-                            >
-                                {0 && (this.props.toDate.getTime() - this.props.fromDate.getTime()) < 3600000 && this.props.selectedNode && <MenuItem value={0} primaryText="Everything" />}
-                                <MenuItem value={5} primaryText="5 min" />
-                                <MenuItem value={10} primaryText="10 min" />
-                                <MenuItem value={30} primaryText="30 min" />
-                                <MenuItem value={60} primaryText="Hourly" />
-                            </SelectField>
+                            <RaisedButton label="Edit" onClick={this.handleOpen} />
+                            <RaisedButton label="Refresh" onClick={this.refreshGraph} />
                         </div>
 
-                    </Dialog>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-around',
+                            height: '100%',
+                            width: '98%',
+                            paddingLeft: '1%',
+                            paddingTop: '1%',
+                        }}>
+                            <PlotlyComponent className="temperature" data={[temperature]} layout={temperatureLayout} config={config} />
+                        </div>
+
+                        <Dialog
+                            title="Configure graphs"
+                            actions={actions}
+                            modal={false}
+                            open={this.state.open}
+                            onRequestClose={this.handleClose}
+                        >
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap',
+                                justifyContent: 'space-evenly',
+                                height: '100%',
+                            }}>
+                                <DatePicker
+                                    onChange={this.handleChangefromDate}
+                                    floatingLabelText="From"
+                                    autoOk={this.state.autoOk}
+                                    value={this.props.fromDate}
+                                    disableYearSelection={this.state.disableYearSelection}
+                                />
+
+                                <DatePicker
+                                    onChange={this.handleChangetoDate}
+                                    floatingLabelText="To"
+                                    autoOk={this.state.autoOk}
+                                    value={this.props.toDate}
+                                    disableYearSelection={this.state.disableYearSelection}
+                                />
+
+                                <SelectField
+                                    floatingLabelText="Frequency"
+                                    value={this.props.interval}
+                                    onChange={this.handleChange}
+                                >
+                                    {0 && (this.props.toDate.getTime() - this.props.fromDate.getTime()) < 3600000 && this.props.selectedNode && <MenuItem value={0} primaryText="Everything" />}
+                                    <MenuItem value={5} primaryText="5 min" />
+                                    <MenuItem value={10} primaryText="10 min" />
+                                    <MenuItem value={30} primaryText="30 min" />
+                                    <MenuItem value={60} primaryText="Hourly" />
+                                </SelectField>
+                            </div>
+                        </Dialog>
+                    </div>}
                 </Tab>
                 {0 && <Tab label="RAW DATA" style={{ height: 50, backgroundColor: colors.accentLight }}>
                     <Table
@@ -412,17 +318,15 @@ class NodeInfoComponent extends React.Component {
                         <TableHeader adjustForCheckbox={true}>
                             <TableRow>
                                 <TableHeaderColumn>TIMESTAMP</TableHeaderColumn>
-                                <TableHeaderColumn>LATENCY</TableHeaderColumn>
-                                <TableHeaderColumn>COVERAGE</TableHeaderColumn>
+                                <TableHeaderColumn>TEMPERATURE</TableHeaderColumn>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {Object.keys(dict).map((key, i) =>
                                 dict[key].latency != 0 &&
                                 <TableRow key={i} value={dict[key]}>
-                                    <TableRowColumn> {dict[key].timestamp} </TableRowColumn>
-                                    <TableRowColumn> {dict[key].latency} </TableRowColumn>
-                                    <TableRowColumn> {dict[key].coverage} </TableRowColumn>
+                                    <TableRowColumn> {moment(dict[key].timestamp).format('DD.MM.YYYY HH:mm')} </TableRowColumn>
+                                    <TableRowColumn> {dict[key].temperature} </TableRowColumn>
                                 </TableRow>
                             )}
                         </TableBody>

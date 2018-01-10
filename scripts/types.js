@@ -17,10 +17,6 @@ export type Node = {
 }
 
 export type NodeInformation = {
-  type: string,
-  timestamp: string,
-  latency: number,
-  coverage: number,
-  latencyDataPoints: number,
-  coverageDataPoints: number,
+  temperature: number,
+  temperatureDataPoints: number,
 }

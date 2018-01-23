@@ -24,11 +24,14 @@ import MenuItem from 'material-ui/MenuItem';
 
 import TimePicker from 'material-ui/TimePicker';
 
+import ReactTable from "react-table";
+import "react-table/react-table.css";
+
 import createPlotlyComponent from 'react-plotlyjs';
 import Plotly from 'plotly.js/dist/plotly-basic.js';
 const PlotlyComponent = createPlotlyComponent(Plotly);
 
-const moment = require('moment')
+const moment = require('moment');
 
 class NodeInfoComponent extends React.Component {
     props: {
@@ -146,7 +149,7 @@ class NodeInfoComponent extends React.Component {
                 if (elem == undefined) {
                     elem = []
                     elem.latencyCount = 1
-                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? 1 : 0
+                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != 0 ? 1 : 0
 
                     elem.timestamp = this.props.nodes[i].nodeInfo[j].timestamp
                     elem.latency = this.props.nodes[i].nodeInfo[j].latency
@@ -154,10 +157,10 @@ class NodeInfoComponent extends React.Component {
                     elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints
                 } else {
                     elem.latencyCount = this.props.nodes[i].nodeInfo[j].latency != 0 ? elem.latencyCount + 1 : elem.latencyCount
-                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != -120 ? elem.coverageCount + 1 : elem.coverageCount
+                    elem.coverageCount = this.props.nodes[i].nodeInfo[j].coverage != 0 ? elem.coverageCount + 1 : elem.coverageCount
 
                     elem.latency = this.props.nodes[i].nodeInfo[j].latency != 0 ? this.props.nodes[i].nodeInfo[j].latency + elem.latency : elem.latency
-                    elem.coverage = this.props.nodes[i].nodeInfo[j].coverage != -120 ? this.props.nodes[i].nodeInfo[j].coverage + elem.coverage : elem.coverage
+                    elem.coverage = this.props.nodes[i].nodeInfo[j].coverage != 0 ? this.props.nodes[i].nodeInfo[j].coverage + elem.coverage : elem.coverage
                     elem.dataPoints = this.props.nodes[i].nodeInfo[j].latencyDataPoints + elem.dataPoints
                 }
                 newDict[key] = elem
@@ -197,7 +200,6 @@ class NodeInfoComponent extends React.Component {
         return {
             title: title,
             height: 600,
-            dragmode: 'pan',
             xaxis: {
                 range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
             },
@@ -245,6 +247,7 @@ class NodeInfoComponent extends React.Component {
         }
 
         let timeoffset = new Date().getTimezoneOffset()
+        let displayData = []        
         for (var key in dict) {
             let time = new Date(new Date(key))
 
@@ -256,9 +259,9 @@ class NodeInfoComponent extends React.Component {
 
             uptimeLabels[uptimeIndex] = time
             uptimePoints[uptimeIndex++] = dict[key].dataPoints != 0 ? round2(dict[key].dataPoints / ((this.props.interval * 60) / this.state.messagingInterval) * 100) : null
+        
+            displayData.push( { "timestamp": key, "latency": dict[key].latency, "coverage": dict[key].coverage })            
         }
-
-        console.log(latencyPoints)
 
         const uptime = this.getData('Uptime', uptimeLabels, uptimePoints)
         let latency = {
@@ -293,7 +296,6 @@ class NodeInfoComponent extends React.Component {
         const latencyAndCoverageLayout = {
             title: "Latency & Coverage",
             height: 600,
-            dragmode: 'pan',
             xaxis: {
                 range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],
             },
@@ -405,29 +407,28 @@ class NodeInfoComponent extends React.Component {
 
                     </Dialog>
                 </Tab>
-                {0 && <Tab label="RAW DATA" style={{ height: 50, backgroundColor: colors.accentLight }}>
-                    <Table
-                        multiSelectable={true}
-                    >
-                        <TableHeader adjustForCheckbox={true}>
-                            <TableRow>
-                                <TableHeaderColumn>TIMESTAMP</TableHeaderColumn>
-                                <TableHeaderColumn>LATENCY</TableHeaderColumn>
-                                <TableHeaderColumn>COVERAGE</TableHeaderColumn>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {Object.keys(dict).map((key, i) =>
-                                dict[key].latency != 0 &&
-                                <TableRow key={i} value={dict[key]}>
-                                    <TableRowColumn> {dict[key].timestamp} </TableRowColumn>
-                                    <TableRowColumn> {dict[key].latency} </TableRowColumn>
-                                    <TableRowColumn> {dict[key].coverage} </TableRowColumn>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </Tab>}
+                <Tab label="RAW DATA" style={{ height: 50, backgroundColor: colors.accentLight }}>
+                    <div>
+                    <ReactTable
+                        data={displayData}
+                        columns={[
+                            {
+                            Header: "Timestamp",
+                            accessor: "timestamp"
+                            },
+                            {
+                            Header: "Latency",
+                            accessor: "latency"
+                            },
+                            {
+                            Header: 'Coverage',
+                            accessor: "coverage"
+                            }
+                        ]}
+                        defaultPageSize={50}
+                        className="-striped -highlight"/>
+                    </div>
+                    </Tab>
             </Tabs>
         )
     }

@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 var ignore = new webpack.IgnorePlugin(/\.svg$/)
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 9001;
 
 module.exports = {
   devtool: 'source-map',

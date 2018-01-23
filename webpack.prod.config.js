@@ -4,7 +4,7 @@ var ignore = new webpack.IgnorePlugin(/\.svg$/);
 var nodeModulesDir = path.resolve(__dirname, 'node_modules');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 9001;
 
 module.exports = {
   entry: [

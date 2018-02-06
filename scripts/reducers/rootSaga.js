@@ -37,14 +37,6 @@ function* fetchNodes(fromDate: Date, toDate: Date, interval: Number) {
     }
 }
 
-function fetchNodeWithId(id: String): NodeInformation[] {
-    try {
-        const nodeInformation = fetchOneNode(id)
-        return nodeInformation
-    } catch (e) {
-    }
-}
-
 function* fetchNode(node: Node, fromDate: Date, toDate: Date, interval: Number) {
     const dateISO = getISOStrings(fromDate, toDate)
 
@@ -54,6 +46,18 @@ function* fetchNode(node: Node, fromDate: Date, toDate: Date, interval: Number) 
         yield put({ type: 'NODE_FETCH_SUCCEEDED', node })
     } catch (e) {
         yield put({ type: 'NODE_FETCH_FAILED', message: e.message })
+    }
+}
+
+function* fetchNodeDetails(node: Node, fromDate: Date, toDate: Date, interval: Number) {
+    const dateISO = getISOStrings(fromDate, toDate)
+
+    try {
+        const nodeDetails = yield call(fetchOneNode, node, dateISO[0], dateISO[1], interval)
+        node.nodeDetails = nodeDetails
+        yield put({ type: 'NODE_DETAILS_FETCH_SUCCEEDED', node })
+    } catch (e) {
+        yield put({ type: 'NODE_DETAILS_FETCH_FAILED', message: e.message })
     }
 }
 
@@ -84,6 +88,7 @@ function* handleRequests(): Generator<*, *, *> {
         switch (action.type) {
             case 'NODES_FETCH_REQUESTED': yield fork(fetchNodes, action.fromDate, action.toDate, action.interval); break
             case 'NODE_FETCH_REQUESTED': yield fork(fetchNode, action.node, action.fromDate, action.toDate, action.interval); break
+            case 'NODE_DETAILS_FETCH_REQUESTED': yield fork(fetchNodeDetails, action.node, action.fromDate, action.toDate, action.interval); break
             case 'NODE_QUERY_CLICKED': yield fork(nodeQueryClicked, action.node); break
             case 'GENERATE_AVERAGES': yield fork(generateAveragesSaga, action.id); break
         }

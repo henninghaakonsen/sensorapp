@@ -1,7 +1,7 @@
 var webpack = require('webpack');
-var ignore = new webpack.IgnorePlugin(/\.svg$/)
+var ignore = new webpack.IgnorePlugin(/\.svg$/);
 
-const port = process.env.PORT || 9001;
+const port = process.env.PORT || 9000;
 
 module.exports = {
   devtool: 'source-map',
@@ -20,7 +20,7 @@ module.exports = {
   module: {
     loaders: [
       { test: /\.js$/, loaders: ['react-hot', 'babel?' + JSON.stringify({presets: ['react', 'env', 'stage-0']})], exclude: /node_modules/ },
-      { test: /\.scss$/, loaders: ['style', 'css', 'postcss'] },
+      { test: /\.css$/, loaders: ['style', 'css', 'postcss'] },
     ],
   },
   plugins: [ignore]

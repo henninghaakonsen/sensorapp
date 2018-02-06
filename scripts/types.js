@@ -14,13 +14,36 @@ export type Node = {
   id: string,
   displayName: string,
   nodeInfo: NodeInformation[],
+  nodeDetails: NodeDetails[],
 }
 
 export type NodeInformation = {
-  type: string,
   timestamp: string,
+  uptime: number,
+  avg_latency: number,
+  min_latency: number,
+  max_latency: number,
+  avg_coverage: number,
+  min_coverage: number,
+  max_coverage: number,
+  avg_power_usage: number,
+  min_power_usage: number,
+  max_power_usage: number,
+}
+
+export type NodeDetails = {
+  timestamp: string,
+  signal_power: number,
+  total_power: number,
+  tx_power: number,
+  tx_time: number,
+  rx_time: number,
+  cell_id: number,
+  ecl: number,
+  snr: number,
+  earfcn: number,
+  pci: number,
+  msg_id: number,
+  ip: string, 
   latency: number,
-  coverage: number,
-  latencyDataPoints: number,
-  coverageDataPoints: number,
 }

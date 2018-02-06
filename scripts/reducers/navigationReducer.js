@@ -19,6 +19,7 @@ const initialState: Navigation = {
   fromDate: null,
   toDate: null,
   interval: 10,
+  mode: "AVG",
 }
 
 export default function navigationReducer(state: Navigation = initialState, action: Action): Navigation {
@@ -28,6 +29,9 @@ export default function navigationReducer(state: Navigation = initialState, acti
 
     case 'SET_INTERVAL':
       return { ...state, interval: action.interval }
+
+    case 'SET_MODE':
+      return { ...state, mode: action.mode }
 
     case 'NODES_FETCH_REQUESTED':
       return { ...state, fetchingNodes: true }

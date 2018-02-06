@@ -4,7 +4,7 @@ var ignore = new webpack.IgnorePlugin(/\.svg$/);
 var nodeModulesDir = path.resolve(__dirname, 'node_modules');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const port = process.env.PORT || 9001;
+const port = process.env.PORT || 9000;
 
 module.exports = {
   entry: [
@@ -18,7 +18,7 @@ module.exports = {
   module: {
     loaders: [
       { test: /\.js$/, loader: 'babel', exclude: [nodeModulesDir] },
-      { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css!postcss!sass') },
+      { test: /\.css$/, loaders: ['style', 'css', 'postcss'] },
     ],
   },
   plugins: [

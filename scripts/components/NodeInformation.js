@@ -68,15 +68,17 @@ class NodeInfoComponent extends React.Component {
 
             let latestDate = 0
             lengths.map((length, i) => {
-                let timestamp = new Date(nextProps.nodes[i].nodeInfo[length - 1]['timestamp'])
-                if (latestDate == 0) {
-                    latestDate = timestamp
-                } else if (timestamp.getTime() > latestDate.getTime()) {
-                    latestDate = timestamp
+                if ( length != 0 ) {
+                    let timestamp = new Date(nextProps.nodes[i].nodeInfo[length - 1]['timestamp'])
+                    if (latestDate == 0) {
+                        latestDate = timestamp
+                    } else if (timestamp.getTime() > latestDate.getTime()) {
+                        latestDate = timestamp
+                    }
                 }
             })
 
-            const toDate = new Date(new Date(latestDate).getTime() + coeff)
+            const toDate = new Date(new Date(latestDate).getTime())
             const fromDate = new Date(new Date(latestDate).getTime())
             fromDate.setDate(fromDate.getDate() - 1)
 
@@ -121,9 +123,7 @@ class NodeInfoComponent extends React.Component {
         const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
         this.props.setTimeSpan(this.props.fromDate, toDate);
 
-        !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
-        this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
-        this.props.selectedNode && this.props.fetchNodeDetails(this.props.selectedNode, this.props.fromDate, this.props.toDate, 0)
+        this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
     }
 
     generateAverages = () => {
@@ -184,7 +184,16 @@ class NodeInfoComponent extends React.Component {
             let key = nodeInfo[i].timestamp
             dict[key] = []
             dict[key].uptime = nodeInfo[i].uptime
-            dict[key].avg_latency = nodeInfo[i].avg_latency
+
+            dict[key].latency = nodeInfo[i].latency
+            dict[key].msg_id = nodeInfo[i].msg_id
+            dict[key].coverage = nodeInfo[i].coverage
+            dict[key].ecl = nodeInfo[i].ecl
+            dict[key].tx_pwr = nodeInfo[i].tx_pwr
+            dict[key].rx_time = nodeInfo[i].rx_time
+            dict[key].tx_time = nodeInfo[i].tx_time
+
+            /*dict[key].avg_latency = nodeInfo[i].avg_latency
             dict[key].min_latency = nodeInfo[i].min_latency
             dict[key].max_latency = nodeInfo[i].max_latency
             dict[key].avg_coverage = nodeInfo[i].avg_coverage 
@@ -192,14 +201,22 @@ class NodeInfoComponent extends React.Component {
             dict[key].max_coverage = nodeInfo[i].max_coverage
             dict[key].avg_power_usage = nodeInfo[i].avg_power_usage
             dict[key].min_power_usage = nodeInfo[i].min_power_usage 
-            dict[key].max_power_usage = nodeInfo[i].max_power_usage 
+            dict[key].max_power_usage = nodeInfo[i].max_power_usage */
         }
 
         return dict
     }
 
     plotlyRelayout = (event) => {
-        this.props.setTimeSpan(new Date(event['xaxis.range[0]']), new Date(event['xaxis.range[1]']))
+        let id = ""
+        if ( event['xaxis2.range[0]'] != undefined ) {
+            id = "2"
+        } else if ( event['xaxis3.range[0]'] != undefined ) {
+            id = "3"
+        } if ( event['xaxis4.range[0]'] != undefined ) {
+            id = "4"
+        }
+        this.props.setTimeSpan(new Date(event['xaxis' + id + '.range[0]']), new Date(event['xaxis' + id + '.range[1]']))
     }
 
     getLayout = (title, yaxisFrom, yaxisTo) => {
@@ -211,13 +228,13 @@ class NodeInfoComponent extends React.Component {
                 type: 'date'
             },
             yaxis: {
-                range: [yaxisFrom, yaxisTo],
+                range: yaxisFrom != 0 ? [yaxisFrom, yaxisTo] : null,
                 type: 'linear',
             }
         }
     }
 
-    getData = (name, labels, points) => {
+    getData = (name, labels, points, id, shape) => {
         return {
             type: "scatter",
             mode: "lines",
@@ -226,16 +243,12 @@ class NodeInfoComponent extends React.Component {
             y: points,
             connectNullData: false,
             line: {
-                shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
+                shape: shape,
+                //color: colors.accentLighter,
+                width: 2
             },
-            transforms: [{
-                type: 'filter',
-                target: 'y',
-                operation: '>=',
-                value: 0.0,
-            }]
+            xaxis: id != 0 ? 'x' + id : null,
+            yaxis: id != 0 ? 'y' + id : null,
         }
     }
 
@@ -246,11 +259,17 @@ class NodeInfoComponent extends React.Component {
         let coveragePoints = []
         let coverageLabels = []
 
-        let powerPoints = []
-        let powerLabels = []
-
         let uptimePoints = []
         let uptimeLabels = []
+
+        let eclLabels = []
+        let eclPoints = []
+        let rxLabels = []
+        let rxPoints = []
+        let txLabels = []
+        let txPoints = []
+        let txPwrPoints = []
+        let txPwrLabels = []
 
         let displayData = []        
 
@@ -258,9 +277,8 @@ class NodeInfoComponent extends React.Component {
         if (this.props.selectedNode) {
             dict = this.handleSelectedNodeInfo(this.props.selectedNodeInfo)
 
-            console.log(this.props.selectedNode)
             if (this.props.selectedNode.nodeDetails) {
-                this.props.selectedNode.nodeDetails.reverse().forEach(element => {
+                this.props.selectedNode.nodeDetails.forEach(element => {
                     displayData.push( { 
                         "timestamp": element.timestamp,
                         "latency": element.latency,                        
@@ -276,62 +294,53 @@ class NodeInfoComponent extends React.Component {
                         "pci": element.pci,
                         "msg_id": element.msg_id,
                         "ip": element.ip,
-                    })            
+                    })
                 });
             }
         } else if (this.props.nodes.length != 0) {
-            dict = this.makeAverageDict()
+            //dict = this.makeAverageDict()
         }
 
-        let latencyIndex = 0
-        let coverageIndex = 0
-        let powerIndex = 0
-        let uptimeIndex = 0
-        function round2(x) {
-            return Math.ceil(x / 2) * 2;
-        }
+        let index = 0
 
         let timeoffset = new Date().getTimezoneOffset()
         
         for (var key in dict) {
             let time = new Date(new Date(key))
 
-            let latency = 0
-            let coverage = 0
-            let power_usage = 0
-            switch ( this.props.mode ) {
-                case "AVG":
-                    latency = dict[key].avg_latency
-                    coverage = dict[key].avg_coverage
-                    power_usage = dict[key].avg_power_usage
-                    break;
-                case "MIN":
-                    latency = dict[key].min_latency
-                    coverage = dict[key].min_coverage
-                    power_usage = dict[key].min_power_usage
-                    break;
-                case "MAX":
-                    latency = dict[key].max_latency
-                    coverage = dict[key].max_coverage
-                    power_usage = dict[key].max_power_usage
-                    break;
-            }
+            let latency = dict[key].latency
+            let coverage = dict[key].coverage
+            let ecl = dict[key].ecl
+            let rx = dict[key].rx_time
+            let tx = dict[key].tx_time
+            let tx_pwr = dict[key].tx_pwr
 
-            latencyLabels[latencyIndex] = time
-            latencyPoints[latencyIndex++] = latency > 0 ? latency : null
+            latencyLabels[index] = time
+            latencyPoints[index] = latency > 0 ? latency : null
 
-            coverageLabels[coverageIndex] = time
-            coveragePoints[coverageIndex++] = coverage < 0 ? coverage : null
+            coverageLabels[index] = time
+            coveragePoints[index] = coverage < -1 ? coverage : null
 
-            powerLabels[powerIndex] = time
-            powerPoints[powerIndex++] = power_usage > 0 ? power_usage : null
+            eclLabels[index] = time
+            eclPoints[index] = ecl >= 0 ? ecl : null
 
-            uptimeLabels[uptimeIndex] = time
-            uptimePoints[uptimeIndex++] = dict[key].uptime > 0 ? dict[key].uptime : null
+            rxLabels[index] = time
+            rxPoints[index] = rx >= 0 ? rx : null
+
+            txLabels[index] = time
+            txPoints[index] = tx >= 0 ? tx : null
+
+            txPwrLabels[index] = time
+            txPwrPoints[index] = tx_pwr > 0 ? tx_pwr : null
+
+            index += 1
         }
 
-        const uptime = this.getData('Uptime', uptimeLabels, uptimePoints)
-        const power = this.getData('Power usage', powerLabels, powerPoints)
+        const tx_power = this.getData('Transmit power', txPwrLabels, txPwrPoints, 1, 'hv')
+        const ecl = this.getData('ECL level', eclLabels, eclPoints, 2, 'hv')
+        const tx_time = this.getData('Transmit time', txLabels, txPoints, 3, 'spline')
+        const rx_time = this.getData('Receive time', rxLabels, rxPoints, 4, 'spline')
+        
         let latency = {
             type: "scatter",
             mode: "lines",
@@ -342,8 +351,8 @@ class NodeInfoComponent extends React.Component {
             connectNullData: false,
             line: {
                 shape: 'spline',
-                color: colors.accentLighter,
-                width: 3
+                //color: colors.accentLighter,
+                width: 2
             }
         }
         let coverage = {
@@ -358,12 +367,11 @@ class NodeInfoComponent extends React.Component {
             line: {
                 shape: 'spline',
                 color: colors.accentLighter,
-                width: 3
+                width: 2
             }
         }
-
         const uptimeLayout = this.getLayout('UPTIME', -5, 105)
-        const powerLayout = this.getLayout('POWER USAGE', 0, 200)
+        const powerLayout = this.getLayout('POWER USAGE', 0, 0)
         const latencyAndCoverageLayout = {
             title: "LATENCY & COVERAGE",
             height: 600,
@@ -404,10 +412,63 @@ class NodeInfoComponent extends React.Component {
                 width: 150,
             },
         };
+       
+        var layout = {
+            height: 1200,
+            xaxis: {
+                type: 'date',
+                domain: [0, 0.45],
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],               
+            },
+            yaxis: {
+                title: 'dBm',                
+                type: 'linear',
+                domain: [0, 0.45], 
+            },
+            xaxis2: {
+                type: 'date',
+                domain: [0.55, 1],
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],               
+            },
+            yaxis2: {
+                title: 'ECL level',                
+                anchor: 'x2',
+                type: 'linear',
+                domain: [0, 0.45],
+                range: [0, 3],
+            },
+            xaxis3: {
+                type: 'date',
+                domain: [0, 0.45],
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()],   
+                anchor: 'y3'            
+            },
+            yaxis3: {
+                title: 'Percentage',                
+                type: 'linear',
+                domain: [0.55, 1],
+            },
+            xaxis4: {
+                type: 'date',
+                domain: [0.55, 1],
+                range: [this.props.fromDate.getTime(), this.props.toDate.getTime()], 
+                anchor: 'y4'   
+            },
+            yaxis4: {
+                title: 'Percentage',                
+                anchor: 'x4',
+                type: 'linear',
+                domain: [0.55, 1],
+            },
+        };
 
         return (
-            <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
-                <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
+            <div>
+                { !this.props.selectedNode && 
+                    <h3> WELCOME PAGE </h3>
+                }
+                <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
+                    { this.props.selectedNode && <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
                     <div style={{
                         display: 'flex',
                         flexDirection: 'row',
@@ -417,7 +478,7 @@ class NodeInfoComponent extends React.Component {
                     }}>
                         <RaisedButton label="Edit" onClick={this.handleOpen} />
                         <RaisedButton label="Refresh" onClick={this.refreshGraph} />
-                        <RaisedButton label={!this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]"} onClick={this.generateAverages} />
+                        <RaisedButton label={ !this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]" } onClick={this.generateAverages} />
                     </div>
 
                     <div style={{
@@ -430,21 +491,8 @@ class NodeInfoComponent extends React.Component {
                         paddingTop: '1%',
                     }}>
                         <PlotlyComponent className="latencyAndCoverage" data={[latency, coverage]} layout={latencyAndCoverageLayout} config={config} onRelayout={this.plotlyRelayout} />
+                        <PlotlyComponent className="test" data={[tx_power, ecl, tx_time, rx_time]} layout={layout} config={config} onRelayout={this.plotlyRelayout}/>
                     </div>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-evenly',
-                        height: '100%',
-                        width: '98%',
-                        paddingLeft: '1%',
-                        paddingTop: '1%',
-                    }}>
-                        <PlotlyComponent className="uptime" data={[uptime]} layout={uptimeLayout} config={config} onRelayout={this.plotlyRelayout} />
-                        <PlotlyComponent className="power" data={[power]} layout={powerLayout} config={config} onRelayout={this.plotlyRelayout} />
-                    </div>
-
-
                     <Dialog
                         title="Configure graphs"
                         actions={actions}
@@ -490,8 +538,7 @@ class NodeInfoComponent extends React.Component {
                                 value={this.props.interval}
                                 onChange={this.handleChange}
                             >
-                                <MenuItem value={0.5} primaryText="30 seconds" />
-                                <MenuItem value={1} primaryText="1 min" />
+                                <MenuItem value={-1} primaryText="Detailed" />
                                 <MenuItem value={5} primaryText="5 min" />
                                 <MenuItem value={10} primaryText="10 min" />
                                 <MenuItem value={30} primaryText="30 min" />
@@ -499,7 +546,7 @@ class NodeInfoComponent extends React.Component {
                             </SelectField>
                         </div>
                     </Dialog>
-                </Tab>
+                </Tab> }
                 { this.props.selectedNode && <Tab label="RAW DATA" style={{ height: 50, backgroundColor: colors.accentLight }}>
                     <div>
                     <ReactTable
@@ -514,6 +561,14 @@ class NodeInfoComponent extends React.Component {
                                 accessor: "latency"
                             },
                             {
+                                Header: 'IP',
+                                accessor: "ip"
+                            },
+                            {
+                                Header: 'MSG ID',
+                                accessor: "msg_id"
+                            },
+                            {
                                 Header: "Signal power",
                                 accessor: "signal_power"
                             },
@@ -522,7 +577,7 @@ class NodeInfoComponent extends React.Component {
                                 accessor: "total_power"
                             },
                             {
-                                Header: 'Transmit power',
+                                Header: 'TX power',
                                 accessor: "tx_power"
                             },
                             {
@@ -552,15 +607,7 @@ class NodeInfoComponent extends React.Component {
                             {
                                 Header: 'PCI',
                                 accessor: "pci"
-                            },
-                            {
-                                Header: 'MSG ID',
-                                accessor: "msg_id"
-                            },
-                            {
-                                Header: 'IP',
-                                accessor: "ip"
-                            },
+                            },                            
                         ]}
                         defaultPageSize={25}
                         showPaginationTop
@@ -568,7 +615,8 @@ class NodeInfoComponent extends React.Component {
                         className="-striped -highlight"/>
                     </div>
                     </Tab> }
-            </Tabs>
+                </Tabs>
+            </div>            
         )
     }
 }

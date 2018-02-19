@@ -27,9 +27,13 @@ class Button extends React.Component {
       return this.state.pressed ?
         colors.accentLighter : colors.accent
     } else {
-      return this.state.pressed ?
-        colors.wetasphalt : this.state.hover ?
+      if ( !this.props.homeButton ) {
+        return this.state.pressed ?
+          colors.wetasphalt : this.state.hover ?
           colors.grayLight : colors.gray
+      } else {
+        return colors.wetasphalt
+      }
     }
   }
 

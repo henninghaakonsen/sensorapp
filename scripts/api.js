@@ -45,7 +45,7 @@ export function fetchNodeList(fromDate: String, toDate: String, interval: Number
             Promise.all( nodes.map(node => {
                 return fetchOneNodeAverage(node, fromDate, toDate, interval)
                   .then(nodeInfo =>
-                    fetchOneNode(node, fromDate, toDate, 0)
+                    fetchOneNode(node)
                       .then(nodeDetails => ({
                         id: node.id,
                         displayName: node.displayName,
@@ -58,8 +58,8 @@ export function fetchNodeList(fromDate: String, toDate: String, interval: Number
         .then( nodes => nodes );
 }
 
-export function fetchOneNode(node: Node, fromDate: String, toDate: String, interval: Number): Promise<NodeDetails[]> {
-    return fetch(`${apiServer}/nodes/${node.id}?interval=${interval}&fromDate=${fromDate}&toDate=${toDate}`, fetchNodeInformationOptions)
+export function fetchOneNode(node: Node): Promise<NodeDetails[]> {
+    return fetch(`${apiServer}/nodes/${node.id}?interval=0`, fetchNodeInformationOptions)
         .then(rejectFetchFailures)
         .then(response => response.json())
         .then(({ information }) => information.map(node => ({
@@ -87,7 +87,14 @@ export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String
         .then(response => response.json())
         .then(({ information }) => information.map(node => ({
             timestamp: node.timestamp,
-            uptime: (node.last_msg_id == undefined && node.data_points == 1) ? 100 : ( ( (node.last_msg_id - node.first_msg_id) + 1) / node.data_points ) * 100,
+            latency: node.latency,
+            msg_id: node.msg_id,
+            coverage: node.coverage,
+            ecl: node.ecl,
+            tx_pwr: node.tx_pwr,
+            rx_time: node.rx_time,
+            tx_time: node.tx_time,
+            /*uptime: (node.last_msg_id == undefined && node.data_points == 1) ? 100 : ( ( (node.last_msg_id - node.first_msg_id) + 1) / node.data_points ) * 100,
             avg_latency: node.avg_latency,
             min_latency: node.min_latency,
             max_latency: node.max_latency,
@@ -96,7 +103,7 @@ export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String
             max_coverage: node.max_coverage,
             avg_power_usage: node.avg_power_usage,
             min_power_usage: node.min_power_usage,
-            max_power_usage: node.max_power_usage,
+            max_power_usage: node.max_power_usage,*/
         })));
 }
 

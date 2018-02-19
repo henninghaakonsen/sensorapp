@@ -30,6 +30,9 @@ function* fetchNodes(fromDate: Date, toDate: Date, interval: Number) {
     const dateISO = getISOStrings(fromDate, toDate)
 
     try {
+        if ( interval == -1) {
+            interval = "all"
+        }
         const nodes = yield call(fetchNodeList, dateISO[0], dateISO[1], interval)
         yield put({ type: 'NODES_FETCH_SUCCEEDED', nodes })
     } catch (e) {
@@ -41,6 +44,9 @@ function* fetchNode(node: Node, fromDate: Date, toDate: Date, interval: Number) 
     const dateISO = getISOStrings(fromDate, toDate)
 
     try {
+        if ( interval == -1) {
+            interval = "all"
+        }
         const nodeInformation = yield call(fetchOneNodeAverage, node, dateISO[0], dateISO[1], interval)
         node.nodeInfo = nodeInformation
         yield put({ type: 'NODE_FETCH_SUCCEEDED', node })
@@ -53,6 +59,9 @@ function* fetchNodeDetails(node: Node, fromDate: Date, toDate: Date, interval: N
     const dateISO = getISOStrings(fromDate, toDate)
 
     try {
+        if ( interval == -1) {
+            interval = "all"
+        }
         const nodeDetails = yield call(fetchOneNode, node, dateISO[0], dateISO[1], interval)
         node.nodeDetails = nodeDetails
         yield put({ type: 'NODE_DETAILS_FETCH_SUCCEEDED', node })

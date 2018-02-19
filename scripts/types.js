@@ -19,6 +19,17 @@ export type Node = {
 
 export type NodeInformation = {
   timestamp: string,
+  latency: number,
+  msg_id: number,
+  coverage: number,
+  ecl: number,
+  tx_pwr: number,
+  rx_time: number,
+  tx_time: number,
+}
+
+/*export type NodeInformation = {
+  timestamp: string,
   uptime: number,
   avg_latency: number,
   min_latency: number,
@@ -29,7 +40,7 @@ export type NodeInformation = {
   avg_power_usage: number,
   min_power_usage: number,
   max_power_usage: number,
-}
+}*/
 
 export type NodeDetails = {
   timestamp: string,

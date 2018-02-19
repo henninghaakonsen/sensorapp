@@ -4,7 +4,6 @@
   "description": "A Sensor Information App",
   "main": "index.js",
   "scripts": {
-    "build-heroku": "webpack ./scripts/main.js sensorapp.bundle.js",
     "build": "NODE_ENV=production webpack -p --config ./webpack.prod.config.js",
     "lint": "eslint scripts",
     "flow": "flow; test $? -eq 0 -o $? -eq 2",

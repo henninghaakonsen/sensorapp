@@ -18,7 +18,7 @@ const initialState: Navigation = {
   fetchingChildren: false,
   fromDate: null,
   toDate: null,
-  interval: 10,
+  interval: -1,
   mode: "AVG",
 }
 

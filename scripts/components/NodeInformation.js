@@ -3,6 +3,7 @@
 import React from 'react'
 import { connectClass } from '../connect'
 import type { Node, NodeInformation } from '../types'
+import Welcome from './Welcome'
 
 import { colors } from '../styles'
 import { Tabs, Tab } from 'material-ui/Tabs';
@@ -253,34 +254,15 @@ class NodeInfoComponent extends React.Component {
     }
 
     render() {
-        let latencyPoints = []
-        let latencyLabels = []
-
-        let coveragePoints = []
-        let coverageLabels = []
-
-        let uptimePoints = []
-        let uptimeLabels = []
-
-        let eclLabels = []
-        let eclPoints = []
-        let rxLabels = []
-        let rxPoints = []
-        let txLabels = []
-        let txPoints = []
-        let txPwrPoints = []
-        let txPwrLabels = []
-
-        let displayData = []        
-
         let dict = {}
+        let displayData = [] 
         if (this.props.selectedNode) {
             dict = this.handleSelectedNodeInfo(this.props.selectedNodeInfo)
 
             if (this.props.selectedNode.nodeDetails) {
                 this.props.selectedNode.nodeDetails.forEach(element => {
                     displayData.push( { 
-                        "timestamp": element.timestamp,
+                        "timestamp": moment(element.timestamp).format(),
                         "latency": element.latency,                        
                         "signal_power": element.signal_power,
                         "total_power": element.total_power,
@@ -301,12 +283,27 @@ class NodeInfoComponent extends React.Component {
             //dict = this.makeAverageDict()
         }
 
-        let index = 0
+        let latencyPoints = []
+        let latencyLabels = []
 
-        let timeoffset = new Date().getTimezoneOffset()
-        
+        let coveragePoints = []
+        let coverageLabels = []
+
+        let uptimePoints = []
+        let uptimeLabels = []
+
+        let eclLabels = []
+        let eclPoints = []
+        let rxLabels = []
+        let rxPoints = []
+        let txLabels = []
+        let txPoints = []
+        let txPwrPoints = []
+        let txPwrLabels = []
+
+        let index = 0
         for (var key in dict) {
-            let time = new Date(new Date(key))
+            let time = moment(key).format()
 
             let latency = dict[key].latency
             let coverage = dict[key].coverage
@@ -366,7 +363,7 @@ class NodeInfoComponent extends React.Component {
             yaxis: "y2",
             line: {
                 shape: 'spline',
-                color: colors.accentLighter,
+                //color: colors.accentLighter,
                 width: 2
             }
         }
@@ -384,7 +381,7 @@ class NodeInfoComponent extends React.Component {
             },
             yaxis2: {
                 title: 'Coverage',
-                range: [-40, -121],
+                range: [-30, -131],
                 anchor: 'free',
                 side: 'right',
                 overlaying: "y",
@@ -465,7 +462,7 @@ class NodeInfoComponent extends React.Component {
         return (
             <div>
                 { !this.props.selectedNode && 
-                    <h3> WELCOME PAGE </h3>
+                    <Welcome/>
                 }
                 <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
                     { this.props.selectedNode && <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>

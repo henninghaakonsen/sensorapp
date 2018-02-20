@@ -1,0 +1,48 @@
+.header {
+    text-align: center;
+    padding-top: 9px;
+    margin: 40px 0 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.ui.center.aligned.header, .ui.centered.header {
+    text-align: center;
+}
+
+.ui.left.aligned.header{
+    text-align: left;
+}
+
+.ui.container {
+    display: block;
+    width: 90%;
+}
+
+.ui.header .sub.header {
+    display: block;
+    font-weight: 400;
+    padding: 0;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.2em;
+    color: rgba(0,0,0,.6);
+}
+
+.ui.list, ol.ui.list, ul.ui.list {
+    list-style-type: none;
+    margin: 1em 0;
+    padding: 0 0;
+}
+
+.ui.list .list>.item, .ui.list>.item, ol.ui.list li, ul.ui.list li {
+    display: list-item;
+    table-layout: fixed;
+    list-style-type: none;
+    list-style-position: outside;
+    padding: .21428571em 0;
+    line-height: 1.14285714em;
+}
+
+.ui.list>.item>.content {
+    line-height: 1.14285714em;
+}

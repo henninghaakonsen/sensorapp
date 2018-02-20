@@ -42,7 +42,7 @@ class Header extends Component {
           color="white"
           homeButton={true}
           onClick={() => this.onClick()}
-          text={"NB IoT APP"}
+          text={"HOME"}
           selected={!this.props.selectedNode} />
       </div>
    )

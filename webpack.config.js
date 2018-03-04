@@ -21,6 +21,12 @@ module.exports = {
     loaders: [
       { test: /\.js$/, loaders: ['react-hot', 'babel?' + JSON.stringify({presets: ['react', 'env', 'stage-0']})], exclude: /node_modules/ },
       { test: /\.css$/, loaders: ['style', 'css', 'postcss'] },
+      { test: /\.(html)$/,
+        loader: 'html-loader',
+        options: {
+          attrs: [':data-src']
+        }
+      },
     ],
   },
   plugins: [ignore]

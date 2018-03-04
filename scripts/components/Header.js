@@ -19,7 +19,7 @@ class Header extends Component {
 
   onClick() {
     this.props.selectHome()
-  }  
+  }
 
   render() {
    return (

@@ -30,7 +30,6 @@ export type NodeInformation = {
 
 /*export type NodeInformation = {
   timestamp: string,
-  uptime: number,
   avg_latency: number,
   min_latency: number,
   max_latency: number,

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import '../css/welcome.css'
+import { colors } from '../styles'
 
 class Welcome extends React.Component {
     render() {
@@ -32,19 +33,27 @@ class Welcome extends React.Component {
                         <div role="list" className="ui list">
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>
-                                <div className="content"><a target="_blank" href="https://github.com/henninghaakonsen/thesis">Thesis</a></div>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/thesis/tree/master/pdf">Thesis PDF</a></div>
                             </div>
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>
-                                <div className="content"><a target="_blank" href="https://github.com/henninghaakonsen/thesis-code">Test code</a></div>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/thesis/tree/master/latex">Thesis latex</a></div>
                             </div>
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>
-                                <div className="content"><a target="_blank" href="https://github.com/henninghaakonsen/sensorapp">App</a></div>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/thesis/tree/master/results">Thesis results</a></div>
                             </div>
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>
-                                <div className="content"><a target="_blank" href="https://github.com/henninghaakonsen/sensorserver">Server</a></div>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/thesis/tree/master/code">Test code</a></div>
+                            </div>
+                            <div role="listitem" className="item">
+                                <i aria-hidden="true" className="check icon"></i>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/sensorapp">App</a></div>
+                            </div>
+                            <div role="listitem" className="item">
+                                <i aria-hidden="true" className="check icon"></i>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/sensorserver">Server</a></div>
                             </div>
                         </div>
                     </div>

@@ -19,6 +19,12 @@ module.exports = {
     loaders: [
       { test: /\.js$/, loader: 'babel', exclude: [nodeModulesDir] },
       { test: /\.css$/, loaders: ['style', 'css', 'postcss'] },
+      { test: /\.(html)$/,
+        loader: 'html-loader',
+        options: {
+          attrs: [':data-src']
+        }
+      },
     ],
   },
   plugins: [

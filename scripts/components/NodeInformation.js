@@ -25,6 +25,13 @@ import createPlotlyComponent from 'react-plotlyjs';
 import Plotly from 'plotly.js/dist/plotly-basic.js';
 const PlotlyComponent = createPlotlyComponent(Plotly);
 
+/*const renderHTML = require('react-render-html');
+import graph from '../../html/UiO_TELIA_2018-02-21_1_0x2_180_2_20.html';
+<div className='app'>
+{renderHTML(graph)}
+</div>  
+*/
+
 const moment = require('moment');
 
 class NodeInfoComponent extends React.Component {
@@ -120,10 +127,6 @@ class NodeInfoComponent extends React.Component {
     };
 
     refreshGraph = () => {
-        var coeff = 1000 * 60 * this.props.interval
-        const toDate = new Date((Math.round(new Date().getTime() / coeff) * coeff) - coeff)
-        this.props.setTimeSpan(this.props.fromDate, toDate);
-
         this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
     }
 
@@ -184,7 +187,6 @@ class NodeInfoComponent extends React.Component {
         for (let i = 0; i < nodeInfo.length; i++) {
             let key = nodeInfo[i].timestamp
             dict[key] = []
-            dict[key].uptime = nodeInfo[i].uptime
 
             dict[key].latency = nodeInfo[i].latency
             dict[key].msg_id = nodeInfo[i].msg_id
@@ -256,6 +258,7 @@ class NodeInfoComponent extends React.Component {
     render() {
         let dict = {}
         let displayData = [] 
+        console.log("render")
         if (this.props.selectedNode) {
             dict = this.handleSelectedNodeInfo(this.props.selectedNodeInfo)
 
@@ -282,15 +285,13 @@ class NodeInfoComponent extends React.Component {
         } else if (this.props.nodes.length != 0) {
             //dict = this.makeAverageDict()
         }
+        console.log(dict)
 
         let latencyPoints = []
         let latencyLabels = []
 
         let coveragePoints = []
         let coverageLabels = []
-
-        let uptimePoints = []
-        let uptimeLabels = []
 
         let eclLabels = []
         let eclPoints = []
@@ -322,16 +323,16 @@ class NodeInfoComponent extends React.Component {
             eclPoints[index] = ecl >= 0 ? ecl : null
 
             rxLabels[index] = time
-            rxPoints[index] = rx >= 0 ? rx : null
+            rxPoints[index] = rx >= 0 ? rx * 100 : null
 
             txLabels[index] = time
-            txPoints[index] = tx >= 0 ? tx : null
+            txPoints[index] = tx >= 0 ? tx * 100 : null
 
             txPwrLabels[index] = time
-            txPwrPoints[index] = tx_pwr > 0 ? tx_pwr : null
+            txPwrPoints[index] = tx_pwr > -400 ? tx_pwr : null
 
             index += 1
-        }
+        };
 
         const tx_power = this.getData('Transmit power', txPwrLabels, txPwrPoints, 1, 'hv')
         const ecl = this.getData('ECL level', eclLabels, eclPoints, 2, 'hv')
@@ -351,7 +352,7 @@ class NodeInfoComponent extends React.Component {
                 //color: colors.accentLighter,
                 width: 2
             }
-        }
+        };
         let coverage = {
             type: "scatter",
             mode: "lines",
@@ -366,8 +367,8 @@ class NodeInfoComponent extends React.Component {
                 //color: colors.accentLighter,
                 width: 2
             }
-        }
-        const uptimeLayout = this.getLayout('UPTIME', -5, 105)
+        };
+
         const powerLayout = this.getLayout('POWER USAGE', 0, 0)
         const latencyAndCoverageLayout = {
             title: "LATENCY & COVERAGE",
@@ -460,10 +461,11 @@ class NodeInfoComponent extends React.Component {
         };
 
         return (
-            <div>
+            <div>              
                 { !this.props.selectedNode && 
                     <Welcome/>
                 }
+                { /*<iframe title="Results" src="/UiO_TELIA_2018-02-22_1_0x2_180_40_0.html" width="1500" height="1000" />*/ } 
                 <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
                     { this.props.selectedNode && <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
                     <div style={{
@@ -473,8 +475,8 @@ class NodeInfoComponent extends React.Component {
                         justifyContent: 'flex-start',
                         width: '100%',
                     }}>
-                        <RaisedButton label="Edit" onClick={this.handleOpen} />
-                        <RaisedButton label="Refresh" onClick={this.refreshGraph} />
+                        { /*<RaisedButton label="Edit" onClick={this.handleOpen} />*/ }
+                        { /*<RaisedButton label="Refresh" onClick={this.refreshGraph} />*/ }
                         <RaisedButton label={ !this.props.selectedNode ? "Generate average [all]" : "Generate average [" + this.props.selectedNode.displayName + "]" } onClick={this.generateAverages} />
                     </div>
 
@@ -632,7 +634,7 @@ const Connected = connectClass(
         setTimeSpan: (fromDate: date, toDate: Date) => dispatch({ type: 'SET_TIMESPAN', fromDate, toDate }),
         setInterval: (interval: Number) => dispatch({ type: 'SET_INTERVAL', interval }),
         setMode: (mode: String) => dispatch({ type: 'SET_MODE', mode }),
-        fetchNodes: (fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, interval }),
+        fetchNodes: (fromDate: Date, toDate: Date, interval: Number) => dispatch({ type: 'NODES_FETCH_REQUESTED', fromDate, toDate, interval }),
         fetchNode: (node: Node, fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODE_FETCH_REQUESTED', node, fromDate, toDate, interval }),
         fetchNodeDetails: (node: Node, fromDate: date, toDate: Date, interval: Number) => dispatch({ type: 'NODE_DETAILS_FETCH_REQUESTED', node, fromDate, toDate, interval }),
         generateAverages: (id: String) => dispatch({ type: 'GENERATE_AVERAGES', id }),

@@ -1,37 +1,24 @@
 // @flow
 
 import type { Action } from '../actions'
-import type { Node, NodeInformation } from '../types'
+import type { SensorNode, NodeInformation } from '../types'
 
 export type Navigation = {
-  nodes: Node[],
-  selectedNode: Node,
+  nodes: SensorNode[],
   fetchingChildren: boolean,
-  fromDate: Date,
-  toDate: Date,
-  interval: Number,
+  selectedNode: string,
 }
 
 const initialState: Navigation = {
   nodes: [],
-  selectedNode: null,
   fetchingChildren: false,
-  fromDate: null,
-  toDate: null,
-  interval: -1,
-  mode: "AVG",
+  selectedNode: undefined,
 }
 
 export default function navigationReducer(state: Navigation = initialState, action: Action): Navigation {
   switch (action.type) {
-    case 'SET_TIMESPAN':
-      return { ...state, fromDate: action.fromDate, toDate: action.toDate }
-
-    case 'SET_INTERVAL':
-      return { ...state, interval: action.interval }
-
-    case 'SET_MODE':
-      return { ...state, mode: action.mode }
+    case 'NODE_SELECTED':
+      return { ...state, selectedNode: action.nodeId }
 
     case 'NODES_FETCH_REQUESTED':
       return { ...state, fetchingNodes: true }
@@ -46,27 +33,23 @@ export default function navigationReducer(state: Navigation = initialState, acti
     case 'NODES_FETCH_FAILED':
       return { ...state, nodes: [], fetchingNodes: false }
 
-    case 'NODE_SELECTED':
-      return { ...state, selectedNode: action.node }
-
     case 'NODE_FETCH_REQUESTED':
       return { ...state, fetchingNodes: true }
 
     case 'NODE_FETCH_FAILED':
-      return { ...state, selectedNode: null, selectedNodeInformation: [], fetchingNodes: false }
+      return { ...state, selectedNodeId: null, selectedNodeInformation: [], fetchingNodes: false }
 
     case 'NODE_FETCH_SUCCEEDED':
       return {
         ...state,
-        selectedNode: action.node,
+        selectedNodeId: action.node.id,
         fetchingNodes: false
       }
 
     case 'SELECT_HOME':
       return {
         ...state,
-        selectedNode: null,
-        selectedNodeInformation: []
+        selectedNodeId: null,
       }
 
     case 'GENERATE_AVERAGES_SUCCEEDED':

@@ -2,7 +2,7 @@
 
 import { call, put, take, fork } from 'redux-saga/effects'
 import type { Action } from '../actions'
-import type { Node } from '../types'
+import type { SensorNode } from '../types'
 
 let moment = require('moment')
 
@@ -17,37 +17,18 @@ export function typedAction(action: any): Action {
     return action
 }
 
-function getISOStrings(fromDate: Date, toDate: Date) {
-    if (fromDate == undefined) return [0, 0]
-    
-    const fromDateISO = moment.utc(fromDate.getTime()).format()
-    const toDateISO = moment.utc(toDate.getTime()).format()
-
-    return [fromDateISO, toDateISO]
-}
-
-function* fetchNodes(fromDate: Date, toDate: Date, interval: Number) {
-    const dateISO = getISOStrings(fromDate, toDate)
-
+function* fetchNodes() {
     try {
-        if ( interval == -1) {
-            interval = "all"
-        }
-        const nodes = yield call(fetchNodeList, dateISO[0], dateISO[1], interval)
+        const nodes = yield call(fetchNodeList)
         yield put({ type: 'NODES_FETCH_SUCCEEDED', nodes })
     } catch (e) {
         yield put({ type: 'NODES_FETCH_FAILED', message: e.message })
     }
 }
 
-function* fetchNode(node: Node, fromDate: Date, toDate: Date, interval: Number) {
-    const dateISO = getISOStrings(fromDate, toDate)
-
+function* fetchNode(node: SensorNode, interval: Number) {
     try {
-        if ( interval == -1) {
-            interval = "all"
-        }
-        const nodeInformation = yield call(fetchOneNodeAverage, node, dateISO[0], dateISO[1], interval)
+        const nodeInformation = yield call(fetchOneNodeAverage, node)
         node.nodeInfo = nodeInformation
         yield put({ type: 'NODE_FETCH_SUCCEEDED', node })
     } catch (e) {
@@ -55,14 +36,9 @@ function* fetchNode(node: Node, fromDate: Date, toDate: Date, interval: Number) 
     }
 }
 
-function* fetchNodeDetails(node: Node, fromDate: Date, toDate: Date, interval: Number) {
-    const dateISO = getISOStrings(fromDate, toDate)
-
+function* fetchNodeDetails(node: NSensorNodeode, interval: Number) {
     try {
-        if ( interval == -1) {
-            interval = "all"
-        }
-        const nodeDetails = yield call(fetchOneNode, node, dateISO[0], dateISO[1], interval)
+        const nodeDetails = yield call(fetchOneNode, node)
         node.nodeDetails = nodeDetails
         yield put({ type: 'NODE_DETAILS_FETCH_SUCCEEDED', node })
     } catch (e) {
@@ -70,9 +46,8 @@ function* fetchNodeDetails(node: Node, fromDate: Date, toDate: Date, interval: N
     }
 }
 
-function* nodeQueryClicked(node: Node) {
+function* nodeQueryClicked(node: SensorNode) {
     try {
-        yield put({ type: 'NODE_SELECTED', node })
         const nodeInformation = yield call(fetchOneNode, node)
         yield put({ type: 'NODE_FETCH_SUCCEEDED', nodeInformation })
     } catch (e) {
@@ -95,9 +70,9 @@ function* handleRequests(): Generator<*, *, *> {
     while (true) {
         const action = typedAction(yield take())
         switch (action.type) {
-            case 'NODES_FETCH_REQUESTED': yield fork(fetchNodes, action.fromDate, action.toDate, action.interval); break
-            case 'NODE_FETCH_REQUESTED': yield fork(fetchNode, action.node, action.fromDate, action.toDate, action.interval); break
-            case 'NODE_DETAILS_FETCH_REQUESTED': yield fork(fetchNodeDetails, action.node, action.fromDate, action.toDate, action.interval); break
+            case 'NODES_FETCH_REQUESTED': yield fork(fetchNodes); break
+            case 'NODE_FETCH_REQUESTED': yield fork(fetchNode, action.node); break
+            case 'NODE_DETAILS_FETCH_REQUESTED': yield fork(fetchNodeDetails, action.node); break
             case 'NODE_QUERY_CLICKED': yield fork(nodeQueryClicked, action.node); break
             case 'GENERATE_AVERAGES': yield fork(generateAveragesSaga, action.id); break
         }

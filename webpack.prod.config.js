@@ -29,6 +29,11 @@ module.exports = {
   },
   plugins: [
     ignore,
-    new ExtractTextPlugin('./server/public/css/main.css')
+    new ExtractTextPlugin('./server/public/css/main.css'),
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    })
   ],
 };

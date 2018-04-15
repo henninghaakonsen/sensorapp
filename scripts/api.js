@@ -1,7 +1,4 @@
 /*
- * For this simple health registry application, we choose to use the online demo
- * api available online at play.dhis2.org.
- *
  * @flow
  */
 
@@ -37,13 +34,13 @@ function rejectFetchFailures(response) {
         Promise.reject(response)
 }
 
-export function fetchNodeList(fromDate: String, toDate: String, interval: Number): Promise<Node[]> {
+export function fetchNodeList(): Promise<Node[]> {
     return fetch(`${apiServer}/nodes`, fetchNodesOptions)
         .then(rejectFetchFailures)
         .then(response => response.json())
         .then(({ nodes }) =>
             Promise.all( nodes.map(node => {
-                return fetchOneNodeAverage(node, fromDate, toDate, interval)
+                return fetchOneNodeAverage(node)
                   .then(nodeInfo =>
                     fetchOneNode(node)
                       .then(nodeDetails => ({
@@ -58,7 +55,7 @@ export function fetchNodeList(fromDate: String, toDate: String, interval: Number
         .then( nodes => nodes );
 }
 
-export function fetchOneNode(node: Node): Promise<NodeDetails[]> {
+export function fetchOneNode(node: SensorNode): Promise<NodeDetails[]> {
     return fetch(`${apiServer}/nodes/${node.id}?interval=0`, fetchNodeInformationOptions)
         .then(rejectFetchFailures)
         .then(response => response.json())
@@ -81,8 +78,8 @@ export function fetchOneNode(node: Node): Promise<NodeDetails[]> {
         })));
 }
 
-export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String, interval: Number): Promise<NodeInformation[]> {
-    return fetch(`${apiServer}/nodes/${node.id}?interval=${interval}`, fetchNodeInformationOptions)
+export function fetchOneNodeAverage(node: SensorNode): Promise<NodeInformation[]> {
+    return fetch(`${apiServer}/nodes/${node.id}?interval=all`, fetchNodeInformationOptions)
         .then(rejectFetchFailures)
         .then(response => response.json())
         .then(({ information }) => information.map(node => ({

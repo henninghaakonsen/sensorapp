@@ -6,12 +6,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import App from './containers/App'
 import configureStore from './store'
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
 const store = configureStore({})
 injectTapEventPlugin();
+
+import App from './containers/App';
 
 ReactDOM.render(
   <Provider store={store}>

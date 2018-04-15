@@ -1,19 +1,26 @@
 // @flow
 
-import React from 'react'
+import React, {Component} from 'react'
 import '../css/welcome.css'
 import { colors } from '../styles'
+import { NavLink } from 'react-router-dom'
 
-class Welcome extends React.Component {
+import resultGraphs from '../constants/result_graphs'
+
+class Welcome extends Component {
+    constructor(props) {
+        super(props)
+    }
+
     render() {
         return ( 
             <div style={{
                 display: 'flex', 
                 justifyContent: 'center', 
-                height: '100vh', 
-                width: '80vw', 
+                height: '100%', 
+                width: '85vw', 
                 overflowY: 'scroll',
-                paddingTop: '1%'}}>
+                }}>
                 <div className="ui container">
                     <h1 className="ui center aligned header">
                         Narrowband IoT
@@ -29,7 +36,7 @@ class Welcome extends React.Component {
                         <p>
                             Begin selecting a node to the left to view sampled data.
                         </p>
-                        <h3 className="ui left aligned header" id="jquery-free">Please visit github for the latest copy of the thesis or source code related to the thesis</h3>
+                        <h3 className="ui left aligned header">Please visit github for the latest copy of the thesis or source code related to the thesis</h3>
                         <div role="list" className="ui list">
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>
@@ -56,11 +63,26 @@ class Welcome extends React.Component {
                                 <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/sensorserver">Server</a></div>
                             </div>
                         </div>
+                        <h3 className="ui left aligned header">Visit one of the following links to view test result graphs</h3>
+                        {
+                            resultGraphs.map( resultGraph => {
+                                return <div key={resultGraph.category}>
+                                    {resultGraph.results.length == 0 ?
+                                    <h2 className="ui left aligned header">{resultGraph.category}</h2>
+                                    : <h4 className="ui left aligned header">{resultGraph.category}</h4>}
+                                    { resultGraph.results.map( result => {
+                                        return <div key={result.path}>
+                                            <NavLink style={{ textDecoration: 'none', color: colors.accent }} to={"/results/" + result.path}>{result.displayName}</NavLink>
+                                            </div>
+                                    }) }
+                                </div>
+                            })
+                        }
                     </div>
                 </div>
             </div>
       )
     }
   }
-  
+
   export default Welcome

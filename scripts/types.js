@@ -10,7 +10,7 @@ export type AppState = {
   editor: Editor,
 }
 
-export type Node = {
+export type SensorNode = {
   id: string,
   displayName: string,
   nodeInfo: NodeInformation[],

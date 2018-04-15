@@ -2,30 +2,57 @@
 
 import React from 'react'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import { connectClass } from '../connect'
 
-import Header from '../components/Header'
 import Navigation from '../components/Navigation'
-import NodeInfoComponent from '../components/NodeInformation'
-import Search from '../components/Search'
+import NodeInfoComponent from '../components/NodeInfoComponent'
+import Welcome from '../components/Welcome'
+import ResultGraph from '../components/ResultGraph'
 import theme from '../styles'
 
-const App = () => {
-  return (
-    <MuiThemeProvider muiTheme={theme}>
-      <div style={{height: '100vh', width: '100vw'}}>
-        <Vertical>
-          <SideBar>
-            <Header />
-            <Search />
-            <Navigation />
-          </SideBar>
-          <Main>
-            <NodeInfoComponent/>
-          </Main>
-        </Vertical>
+import { Router, Route } from 'react-router-dom';
+import { Redirect } from 'react-router';
+import history from '../utils/history';
+
+let ContentLoader = (props) => (
+  <Router history={history}>
+      <div style={{
+        width: '85vw',
+        height: '100%'
+      }}>
+          <Route exact path="/" component={Welcome} />
+          <Route path="/nodes/:nodeId" component={NodeInfoComponent} />
+          <Route path="/results/:resultId" component={ResultGraph} />
       </div>
-    </MuiThemeProvider>
-  )
+  </Router>
+);
+
+class App extends React.Component {
+  props: {
+    selectNode: (nodeId) => void,    
+  }
+
+  constructor(props) {
+    super(props)
+    this.props.selectNode(history.location.pathname.split('/').slice(-1)[0])
+  }
+  
+  render() {
+    return (
+      <MuiThemeProvider muiTheme={theme}>
+        <div style={{height: '100vh', width: '100vw', position: 'fixed'}}>
+          <Vertical>
+            <SideBar>
+              <Navigation props={this.props}/>
+            </SideBar>
+            <Main>
+              <ContentLoader props={this.props}/>
+            </Main>
+          </Vertical>
+        </div>
+      </MuiThemeProvider>
+    )
+  }
 }
 
 const Vertical = ({children}) => {
@@ -34,6 +61,7 @@ const Vertical = ({children}) => {
       display: 'flex',
       flexDirection: 'row',
       height: '100%',
+      width: '100vw',
     }}>
       { children }
     </div>
@@ -44,6 +72,7 @@ const Main = ({children}) => {
   return (
     <div style={{
       height: '100%',
+      width: '85vw',
     }}>
       { children }
     </div>
@@ -58,7 +87,7 @@ const SideBar = ({children}) => {
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      width: '20%',
+      width: '15%',
       zIndex: 1,
     }}>
       { children }
@@ -66,4 +95,14 @@ const SideBar = ({children}) => {
   )
 }
 
-export default App
+const doNothing = () => { }
+
+const Connected = connectClass(
+  (state: AppState) => ({
+  }),
+  (dispatch: (action: Action) => void) => ({
+    selectNode: (nodeId) => dispatch({ type: 'NODE_SELECTED', nodeId }),    
+  }), App
+)
+
+export default Connected;

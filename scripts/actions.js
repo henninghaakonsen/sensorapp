@@ -7,23 +7,20 @@
  */
 
 import typeimport { NodeDetails } from "./types";
- { Node, NodeInformation } from './types'
+ { SensorNode, NodeInformation } from './types'
 
 export type Action =
     // Navigation actions
-    { type: 'SET_TIMESPAN', fromDate: Date, toDate: Date }
-    | { type: 'SET_INTERVAL', interval: Number }
-    | { type: 'SET_MODE', mode: String }
-    | { type: 'NODES_FETCH_REQUESTED', fromDate: Date, toDate: Date, interval: Number }
-    | { type: 'NODES_FETCH_SUCCEEDED', nodes: Node[] }
+    | { type: 'NODE_SELECTED', nodeId: string }
+    | { type: 'NODES_FETCH_REQUESTED' }
+    | { type: 'NODES_FETCH_SUCCEEDED', nodes: SensorNode[] }
     | { type: 'NODES_FETCH_FAILED', message: string }
-    | { type: 'NODE_FETCH_REQUESTED', node: Node, fromDate: Date, toDate: Date, interval: Number }
+    | { type: 'NODE_FETCH_REQUESTED', node: SensorNode }
     | { type: 'NODE_FETCH_SUCCEEDED', node: NodeInformation }
     | { type: 'NODE_FETCH_FAILED', message: string }
-    | { type: 'NODE_FETCH_DETAILS_REQUESTED', node: Node, fromDate: Date, toDate: Date, interval: Number }
-    | { type: 'NODE_FETCH_DETAILS_SUCEEDED', node: Node }
+    | { type: 'NODE_FETCH_DETAILS_REQUESTED', node: SensorNode }
+    | { type: 'NODE_FETCH_DETAILS_SUCEEDED', node: SensorNode }
     | { type: 'NODE_FETCH_DETAILS_FAILED', message: String }
-    | { type: 'NODE_QUERY_CLICKED', node: Node }
-    | { type: 'NODE_SELECTED', node: Node }
+    | { type: 'NODE_QUERY_CLICKED', node: SensorNode }
     | { type: 'SELECT_HOME' }
     | { type: 'GENERATE_AVERAGES', id: String }

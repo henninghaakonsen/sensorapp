@@ -40,7 +40,7 @@ class Welcome extends Component {
                         <div role="list" className="ui list">
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>
-                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/thesis/tree/master/pdf">Thesis PDF</a></div>
+                                <div className="content"><a style={{textDecoration: 'none', color: colors.accent}} target="_blank" href="https://github.com/henninghaakonsen/thesis/raw/master/latex/nbiot.pdf">Download latest PDF</a></div>
                             </div>
                             <div role="listitem" className="item">
                                 <i aria-hidden="true" className="check icon"></i>

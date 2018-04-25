@@ -31,7 +31,7 @@ class Welcome extends Component {
                     <div className="ui basic padded segment">
                         <p>
                             Today there are approximately 30 billion smart devices in the world. The growth forwards will be exponential and analysis predict that there will be 50 billion smart devices by 2020. 
-                            There is a demand for a new technology which enables communication with sensors and other low powered devices. This page resembles the work and research on a set of technologies suited for this communication, with an emphasis on NB IoT. 
+                            There is a demand for a new technology which enables communication with sensors and other low powered devices. This page construct the work and research on a set of technologies suited for this communication, with an emphasis on NB IoT. 
                         </p>
                         <p>
                             Begin selecting a node to the left to view sampled data.

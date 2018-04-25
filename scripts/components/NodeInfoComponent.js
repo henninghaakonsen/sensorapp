@@ -259,7 +259,7 @@ class NodeInfoComponent extends React.Component {
         let coverage = {
             type: "scatter",
             mode: "lines",
-            name: "Coverage",
+            name: "Signal power",
             x: coverageLabels,
             y: coveragePoints,
             mode: "date",
@@ -274,17 +274,17 @@ class NodeInfoComponent extends React.Component {
 
         const powerLayout = this.getLayout('POWER USAGE', 0, 0)
         const latencyAndCoverageLayout = {
-            title: "LATENCY & COVERAGE",
+            title: "LATENCY & SIGNAL POWER",
             height: 600,
             xaxis: {
                 range: [this.state.fromDate.getTime(), this.state.toDate.getTime()],
             },
             yaxis: {
-                title: "Latency",
+                title: "Latency (s)",
                 range: [-2, 20]
             },
             yaxis2: {
-                title: 'Coverage',
+                title: 'Signal power (dBm)',
                 range: [-30, -131],
                 anchor: 'free',
                 side: 'right',

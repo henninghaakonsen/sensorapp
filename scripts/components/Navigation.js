@@ -62,7 +62,6 @@ class Navigation extends Component {
           zIndex: 2,
         }}>
           <Button
-            color="white"
             homeButton={true}
             onClick={() => this.onClick()}
             text={"HOME"}

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { colors, fonts } from '../styles'
+import Subheader from 'material-ui/Subheader';
 
 class Button extends React.Component {
   props: {
@@ -23,16 +24,13 @@ class Button extends React.Component {
   }
 
   getBackgroundColor() {
-    if (this.props.selected) {
-      return this.state.pressed ?
-        colors.accentLighter : colors.accent
+    if (this.props.homeButton) {
+      return colors.wetasphalt
     } else {
-      if ( !this.props.homeButton ) {
-        return this.state.pressed ?
-          colors.wetasphalt : this.state.hover ?
-          colors.grayLight : colors.gray
+      if ( this.props.selected ) {
+        return colors.gray
       } else {
-        return colors.wetasphalt
+        return this.state.hover ? colors.gray : '#f4f4f4'
       }
     }
   }
@@ -46,20 +44,20 @@ class Button extends React.Component {
         onMouseLeave={() => this.setState({hover: false, pressed: false})}
         onMouseUp={() => this.setState({pressed: false})}
         style={{
-          alignItems: 'center',
+          alignItems: 'left',
           backgroundColor: this.getBackgroundColor(),
-          color: 'white',
           cursor: 'pointer',
           display: 'flex',
-          fontSize: fonts.large,
-          fontWeight: 600,
-          height: 40,
-          justifyContent: 'flex-start',
-          paddingLeft: 20,
-          textAlign: 'center',
-          userSelect: 'none',
+          height: '40px',
+          paddingLeft: !this.props.homeButton ? '10px' : '0px',
+          textAlign: 'left',
         }}>
-        { this.props.text.toUpperCase() }
+        <Subheader style={{
+          color: 'black',
+          fontSize: 18,
+        }} >
+          { this.props.text.toUpperCase() }
+        </Subheader>
       </div>
     )
   }

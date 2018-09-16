@@ -7,8 +7,8 @@
 
 import type { Node, NodeInformation } from './types'
 
-//const apiServer = 'http://localhost:' + (process.env.PORT || 8020) + '/api'
-const apiServer = 'http://158.39.77.97:' + (process.env.PORT || 8020) + '/api'
+const apiServer = 'http://localhost:' + (process.env.PORT || 9000) + '/api'
+//const apiServer = 'http://158.39.77.97:' + (process.env.PORT || 8020) + '/api'
 //const apiServer = 'https://nb-iot-sensorserver.herokuapp.com/api'
 
 const fetchNodesOptions = {
@@ -45,11 +45,15 @@ export function fetchNodeList(fromDate: String, toDate: String, interval: Number
         .then(({ nodes }) =>
             Promise.all(nodes.map(node => {
                 return fetchOneNodeAverage(node, fromDate, toDate, interval)
-                    .then(nodeInfo => ({
-                        id: node.id,
-                        displayName: node.displayName,
-                        nodeInfo: nodeInfo,
-                    }))
+                    .then(nodeInfo => {
+                        return fetchTemperatureNowForNode(node)
+                            .then(temperatureNode => ({
+                                id: node.id,
+                                displayName: node.displayName,
+                                nodeInfo: nodeInfo,
+                                temperatureNow: temperatureNode[0].temperature
+                            }))
+                    })
             })))
         .then(nodes => nodes);
 }
@@ -62,6 +66,13 @@ export function fetchOneNode(node: Node, fromDate: String, toDate: String, inter
             timestamp: node.timestamp,
             temperature: node.temperature,
         })));
+}
+
+export function fetchTemperatureNowForNode(node) {
+    return fetch(`${apiServer}/temperature_now/${node.id}`, fetchNodeInformationOptions)
+        .then(rejectFetchFailures)
+        .then(response => response.json())
+        .then(({ information }) => information);
 }
 
 export function fetchOneNodeAverage(node: Node, fromDate: String, toDate: String, interval: Number): Promise<NodeInformation[]> {

@@ -9,6 +9,7 @@ let moment = require('moment')
 import {
     fetchNodeList,
     fetchOneNodeAverage,
+    fetchTemperatureNowForNode,
     generateAverages,
     generateAveragesOnIndex,
 } from '../api'
@@ -30,7 +31,9 @@ function* fetchNodes(fromDate: Date, toDate: Date, interval: Number) {
     const dateISO = getISOStrings(fromDate, toDate)
 
     try {
-        const nodes = yield call(fetchNodeList, dateISO[0], dateISO[1], interval)
+        let nodes = yield call(fetchNodeList, dateISO[0], dateISO[1], interval)
+        console.log(nodes)
+
         yield put({ type: 'NODES_FETCH_SUCCEEDED', nodes })
     } catch (e) {
         yield put({ type: 'NODES_FETCH_FAILED', message: e.message })

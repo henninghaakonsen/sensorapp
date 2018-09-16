@@ -30,6 +30,24 @@ const PlotlyComponent = createPlotlyComponent(Plotly);
 
 const moment = require('moment')
 
+const styles = {
+    circle: {
+        paddingTop: '2rem',
+        display: 'table-cell',
+        height: '3rem', /*change this and the width
+        for the size of your initial circle*/
+        width: '5rem',
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        borderRadius: '50%',
+        /*make it pretty*/
+        background: '#000',
+        color: '#fff',
+        font: '18px josefin sans, arial', /*change this
+        for font-size and font-family*/
+    }
+}
+
 class NodeInfoComponent extends React.Component {
     props: {
         fetchingNodes: Boolean,
@@ -92,6 +110,7 @@ class NodeInfoComponent extends React.Component {
         if (this.state.fetchGraphData) {
             !this.props.selectedNode && this.props.fetchNodes(this.props.fromDate, this.props.toDate, this.props.interval)
             this.props.selectedNode && this.props.fetchNode(this.props.selectedNode, this.props.fromDate, this.props.toDate, this.props.interval)
+            this.props.fetchNodeTemperatureNow({id: 'ute'})
         }
 
         this.setState({ open: false, fetchGraphData: false });
@@ -134,7 +153,7 @@ class NodeInfoComponent extends React.Component {
         this.props.setTimeSpan(this.props.fromDate, date)
     };
 
-    handleSelectedNodeInfo(nodeInfo: NodeInformation[]): {} {
+    handleSelectedNodeInfo(nodeInfo) {
         let dict = {}
         for (let i = 0; i < nodeInfo.length; i++) {
             let key = nodeInfo[i].timestamp
@@ -146,7 +165,7 @@ class NodeInfoComponent extends React.Component {
         return dict
     }
 
-    handleAllNodes(): {} {
+    handleAllNodes() {
         let newDict = {}
 
         for (let i = 0; i < this.props.nodes.length; i++) {
@@ -242,7 +261,7 @@ class NodeInfoComponent extends React.Component {
         return (
             <Tabs style={{ height: '100vh', width: '80vw', overflowY: 'scroll' }}>
                 <Tab label="GRAPH OVERVIEW" style={{ height: 50, backgroundColor: colors.accentLight }}>
-                    {this.props.selectedNode && <div>
+                    {this.props.selectedNode ? <div>
                         <div style={{
                             display: 'flex',
                             flexDirection: 'row',
@@ -309,6 +328,16 @@ class NodeInfoComponent extends React.Component {
                                 </SelectField>
                             </div>
                         </Dialog>
+                    </div>
+                    :
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-evenly'}}>
+                        {this.props.nodes.map(node => {
+                            return (
+                                <div style={styles.circle}>
+                                    {parseFloat(node.temperatureNow).toFixed(2)}
+                                </div>
+                            )
+                        })}
                     </div>}
                 </Tab>
                 {0 && <Tab label="RAW DATA" style={{ height: 50, backgroundColor: colors.accentLight }}>
